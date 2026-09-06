@@ -1,0 +1,564 @@
+#adminmenu {
+	background: var(--uamm-bg, inherit);
+}
+
+body.uamm-menu-pending #adminmenu {
+	animation: uamm-menu-reveal-failsafe 0s 1.5s forwards;
+	visibility: hidden;
+}
+
+@keyframes uamm-menu-reveal-failsafe {
+	to {
+		visibility: visible;
+	}
+}
+
+@media screen and (min-width: 961px) {
+	body:not(.folded) #adminmenuback,
+	body:not(.folded) #adminmenuwrap,
+	body:not(.folded) #adminmenu {
+		width: var(--uamm-admin-menu-width, 160px);
+	}
+
+	body:not(.folded) #wpcontent,
+	body:not(.folded) #wpfooter {
+		margin-left: var(--uamm-admin-menu-width, 160px);
+	}
+
+	body:not(.folded) #adminmenu .wp-submenu {
+		width: var(--uamm-admin-menu-width, 160px);
+	}
+
+	body:not(.folded) #adminmenu .wp-not-current-submenu .wp-submenu {
+		left: calc(var(--uamm-admin-menu-width, 160px) + var(--uamm-submenu-edge-distance, 10px));
+	}
+
+	body:not(.folded) #adminmenu .uamm-group-member.wp-not-current-submenu .wp-submenu {
+		left: calc(var(--uamm-admin-menu-width, 160px) - var(--uamm-group-margin-inline, 0px) + var(--uamm-submenu-edge-distance, 10px));
+	}
+}
+
+#adminmenu a,
+#adminmenu .wp-menu-image::before {
+	color: var(--uamm-text, inherit);
+}
+
+#adminmenu a {
+	border-block-end: 1px solid rgba(255, 255, 255, .13);
+	border-block-end-color: color-mix(in srgb, var(--uamm-menu-divider, #fff) var(--uamm-menu-divider-opacity, 13%), transparent);
+	box-sizing: border-box;
+}
+
+#adminmenu > li:last-child > a,
+#adminmenu > li.menu-top-last > a.menu-top,
+#adminmenu > li.menu-top:not(:has(~ li.menu-top > a.menu-top)) > a.menu-top,
+#adminmenu > li.menu-top:has(+ li.uamm-group-heading) > a.menu-top,
+#adminmenu .wp-submenu > li:last-child > a,
+#adminmenu .uamm-group-member--last > a.menu-top {
+	border-block-end-color: transparent;
+}
+
+/* SureCookie's pseudo-element dividers become horizontal flex children in touch mode. */
+#adminmenu #toplevel_page_surecookie .wp-submenu a::after {
+	content: none !important;
+	display: none !important;
+}
+
+#adminmenu div.wp-menu-image::before {
+	color: var(--uamm-icon, inherit);
+}
+
+#adminmenu .uamm-menu-image-mask {
+	background-color: var(--uamm-icon, currentColor) !important;
+	background-image: none !important;
+	color: var(--uamm-icon, inherit);
+	mask-image: var(--uamm-menu-icon-mask);
+	mask-position: center;
+	mask-repeat: no-repeat;
+	mask-size: 20px 20px;
+	-webkit-mask-image: var(--uamm-menu-icon-mask);
+	-webkit-mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: 20px 20px;
+}
+
+#adminmenu .uamm-menu-image-mask > img {
+	display: none !important;
+}
+
+#adminmenu > li.menu-top > a.menu-top {
+	min-height: var(--uamm-menu-item-min-height, 44px);
+}
+
+#adminmenu > li.menu-top > a.menu-top .wp-menu-image {
+	height: var(--uamm-menu-item-min-height, 44px);
+}
+
+#adminmenu > li.menu-top > a.menu-top .wp-menu-name {
+	padding-block: var(--uamm-menu-item-padding-block, 13px);
+}
+
+#adminmenu .uamm-submenu-indicator {
+	background: currentColor;
+	display: none;
+	height: 16px;
+	mask: url("menu-collapse-solid-sharp.svg") center / contain no-repeat;
+	opacity: .48;
+	pointer-events: none;
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%) rotate(180deg);
+	transition: opacity .14s ease, transform .14s ease;
+	width: 16px;
+	-webkit-mask: url("menu-collapse-solid-sharp.svg") center / contain no-repeat;
+}
+
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top {
+	position: relative;
+}
+
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top .wp-menu-name {
+	padding-right: 34px;
+}
+
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top > .uamm-submenu-indicator {
+	display: block;
+}
+
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu:hover > a.menu-top > .uamm-submenu-indicator,
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu.opensub > a.menu-top > .uamm-submenu-indicator,
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-current-submenu > a.menu-top > .uamm-submenu-indicator,
+body.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top:focus > .uamm-submenu-indicator {
+	opacity: 0;
+	transform: translate(4px, -50%) rotate(180deg);
+}
+
+body.rtl.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top .wp-menu-name {
+	padding-left: 34px;
+	padding-right: 8px;
+}
+
+body.rtl #adminmenu .uamm-submenu-indicator {
+	left: 8px;
+	right: auto;
+	transform: translateY(-50%);
+}
+
+body.rtl.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu:hover > a.menu-top > .uamm-submenu-indicator,
+body.rtl.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu.opensub > a.menu-top > .uamm-submenu-indicator,
+body.rtl.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-current-submenu > a.menu-top > .uamm-submenu-indicator,
+body.rtl.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top:focus > .uamm-submenu-indicator {
+	transform: translate(-4px, -50%);
+}
+
+#adminmenu > li.menu-top > a.menu-top .wp-menu-image::before {
+	padding-top: var(--uamm-menu-icon-padding-top, 12px);
+}
+
+#adminmenu > li.menu-top > a.menu-top .wp-menu-image img {
+	padding-top: var(--uamm-menu-icon-padding-top, 12px);
+}
+
+#adminmenu .wp-submenu a {
+	box-sizing: border-box;
+	line-height: var(--uamm-submenu-item-line-height, 20px);
+	min-height: var(--uamm-menu-item-min-height, 44px);
+	padding-block: var(--uamm-submenu-item-padding-block, 12px);
+}
+
+body.uamm-touch-optimized #adminmenu .wp-submenu a {
+	display: flex;
+	align-items: center;
+}
+
+#toplevel_page_uplink-admin-menu-manager .wp-menu-image img {
+	display: none;
+}
+
+#toplevel_page_uplink-admin-menu-manager .wp-menu-image::before {
+	background-color: currentColor;
+	content: "";
+	display: block;
+	height: 20px;
+	margin: var(--uamm-menu-icon-padding-top, 12px) auto 0;
+	mask-image: url("layout-list-stroke-standard.svg");
+	mask-position: center;
+	mask-repeat: no-repeat;
+	mask-size: contain;
+	padding: 0;
+	width: 20px;
+	-webkit-mask-image: url("layout-list-stroke-standard.svg");
+	-webkit-mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	-webkit-mask-size: contain;
+}
+
+#adminmenu > #toplevel_page_uplink-admin-menu-manager > a.menu-top .wp-menu-image::before {
+	padding-top: 0;
+}
+
+#adminmenu .current a.menu-top,
+#adminmenu .wp-has-current-submenu > a.wp-has-current-submenu,
+#adminmenu li.menu-top:hover > a.menu-top,
+#adminmenu li.opensub > a.menu-top {
+	background: var(--uamm-highlight, inherit);
+}
+
+#adminmenu .current a.menu-top,
+#adminmenu .wp-has-current-submenu > a.wp-has-current-submenu,
+#adminmenu li.menu-top:hover > a.menu-top,
+#adminmenu li.opensub > a.menu-top {
+	color: var(--uamm-text);
+}
+
+#adminmenu .current a.menu-top .wp-menu-image::before,
+#adminmenu .wp-has-current-submenu > a.wp-has-current-submenu .wp-menu-image::before,
+#adminmenu li.menu-top:hover > a.menu-top .wp-menu-image::before,
+#adminmenu li.opensub > a.menu-top .wp-menu-image::before {
+	color: var(--uamm-icon);
+}
+
+#adminmenu .uamm-group-heading {
+	border: 0;
+	border-radius: var(--uamm-group-border-radius, 0);
+	margin-block: var(--uamm-group-margin-block, 7px);
+	margin-inline: var(--uamm-group-margin-inline, 0);
+	padding: 0;
+	position: relative;
+}
+
+#adminmenu .uamm-group-heading.has-border {
+	border: 1px solid var(--uamm-group-heading-border, #fff);
+}
+
+#adminmenu .uamm-group-heading:not(.is-collapsed) {
+	border-bottom: 0;
+	border-radius: var(--uamm-group-border-radius, 0) var(--uamm-group-border-radius, 0) 0 0;
+	margin-block-end: 0;
+}
+
+#adminmenu .uamm-group-toggle {
+	align-items: center;
+	background: rgba(0, 0, 0, .12);
+	border: 0;
+	box-sizing: border-box;
+	color: rgba(255, 255, 255, .82);
+	cursor: pointer;
+	display: grid;
+	font-size: var(--uamm-group-heading-font-size, 11px);
+	font-weight: var(--uamm-group-heading-font-weight, 700);
+	gap: 8px;
+	grid-template-columns: 20px minmax(0, 1fr) 18px;
+	letter-spacing: var(--uamm-group-heading-letter-spacing, .4px);
+	line-height: 1.35;
+	min-height: var(--uamm-menu-item-min-height, 44px);
+	padding: 7px 8px;
+	text-align: left;
+	text-transform: var(--uamm-group-heading-text-transform, uppercase);
+	width: 100%;
+}
+
+#adminmenu .uamm-group-heading.is-collapsed .uamm-group-toggle {
+	background: var(--uamm-group-collapsed-bg, #1d2327);
+	border-radius: var(--uamm-group-border-radius, 0);
+	color: var(--uamm-group-collapsed-text, #f0f0f1);
+}
+
+#adminmenu .uamm-group-heading.is-collapsed .uamm-group-toggle:hover {
+	background: var(--uamm-group-collapsed-hover-bg, #2c3338);
+	color: var(--uamm-group-collapsed-hover-text, #fff);
+}
+
+#adminmenu .uamm-group-toggle[aria-expanded="true"] {
+	background: var(--uamm-group-open-bg, #0071cc);
+	border-radius: var(--uamm-group-border-radius, 0) var(--uamm-group-border-radius, 0) 0 0;
+	box-shadow: none;
+	color: var(--uamm-group-open-text, #fff);
+}
+
+#adminmenu .uamm-group-heading.has-border .uamm-group-toggle[aria-expanded="true"] {
+	box-shadow: inset 4px 0 0 var(--uamm-group-heading-border, #fff), inset 0 -3px 0 var(--uamm-group-heading-border, #fff);
+}
+
+#adminmenu .uamm-group-toggle[aria-expanded="true"]:hover {
+	background: var(--uamm-group-heading-hover-bg, var(--uamm-group-open-bg, #0071cc));
+	background: var(--uamm-group-heading-hover-bg, color-mix(in srgb, var(--uamm-group-open-bg, #0071cc) 92%, var(--uamm-group-open-text, #fff) 8%));
+	color: var(--uamm-group-heading-hover-text, var(--uamm-group-open-text, #fff));
+}
+
+#adminmenu .uamm-group-toggle[aria-disabled="true"] {
+	cursor: default;
+}
+
+#adminmenu .uamm-group-toggle:focus-visible {
+	box-shadow: inset 0 0 0 2px #72aee6;
+	outline: 0;
+}
+
+#adminmenu .uamm-group-icon,
+#adminmenu .uamm-group-chevron {
+	font-size: 17px;
+	height: 18px;
+	line-height: 18px;
+	width: 18px;
+}
+
+#adminmenu .uamm-group-label {
+	padding-right: var(--uamm-group-label-pin-space, 36px);
+}
+
+#adminmenu .uamm-group-pin-toggle {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	border-radius: 3px;
+	color: rgba(255, 255, 255, .82);
+	cursor: pointer;
+	display: flex;
+	height: var(--uamm-group-pin-size, 34px);
+	justify-content: center;
+	padding: 4px;
+	position: absolute;
+	right: 30px;
+	top: var(--uamm-group-pin-top, 5px);
+	width: var(--uamm-group-pin-size, 34px);
+	z-index: 2;
+}
+
+#adminmenu .uamm-group-heading:not(.is-collapsed) .uamm-group-pin-toggle {
+	color: var(--uamm-group-open-text, #fff);
+}
+
+#adminmenu .uamm-group-heading.is-collapsed .uamm-group-pin-toggle {
+	color: var(--uamm-group-collapsed-text, #f0f0f1);
+}
+
+#adminmenu .uamm-group-heading.is-collapsed .uamm-group-pin-toggle:hover {
+	color: var(--uamm-group-collapsed-hover-text, #fff);
+}
+
+#adminmenu .uamm-group-pin-toggle:hover {
+	background: rgba(255, 255, 255, .14);
+}
+
+#adminmenu .uamm-group-pin-toggle:focus-visible {
+	box-shadow: inset 0 0 0 2px #72aee6;
+	outline: 0;
+}
+
+#adminmenu .uamm-group-pin-icon {
+	background: currentColor;
+	display: block;
+	height: 16px;
+	mask: url("pin-02-solid-rounded.svg") center / contain no-repeat;
+	transform: rotate(45deg);
+	transition: transform .16s ease;
+	width: 16px;
+	-webkit-mask: url("pin-02-solid-rounded.svg") center / contain no-repeat;
+}
+
+#adminmenu .uamm-group-pin-toggle[aria-pressed="true"] .uamm-group-pin-icon {
+	transform: rotate(0);
+}
+
+#adminmenu .uamm-group-chevron {
+	transition: transform .16s ease;
+}
+
+#adminmenu .uamm-group-heading.is-collapsed .uamm-group-chevron {
+	transform: rotate(-90deg);
+}
+
+#adminmenu .uamm-group-member {
+	background: var(--uamm-group-panel-bg, rgba(0, 0, 0, .38));
+	box-shadow: none;
+	box-sizing: border-box;
+	margin-inline: var(--uamm-group-margin-inline, 0);
+}
+
+#adminmenu .uamm-group-member.has-border {
+	border-left: 4px solid var(--uamm-group-panel-border, #72aee6);
+	border-right: 1px solid var(--uamm-group-panel-border, #72aee6);
+}
+
+#adminmenu .uamm-group-member > a.menu-top,
+#adminmenu .uamm-group-member > a.menu-top .wp-menu-image::before {
+	color: var(--uamm-group-panel-text, inherit);
+	transition: background-color .12s ease, color .12s ease;
+}
+
+#adminmenu .uamm-group-member > a.menu-top .uamm-menu-image-mask {
+	background-color: var(--uamm-group-panel-text, inherit) !important;
+	color: var(--uamm-group-panel-text, inherit);
+}
+
+#adminmenu li.uamm-group-member:hover > a.menu-top,
+#adminmenu li.uamm-group-member.opensub > a.menu-top,
+#adminmenu li.uamm-group-member > a.menu-top:focus {
+	background: var(--uamm-group-panel-hover-bg, var(--uamm-group-panel-bg, rgba(255, 255, 255, .08)));
+	background: var(--uamm-group-panel-hover-bg, color-mix(in srgb, var(--uamm-group-panel-bg, #1d2327) 92%, var(--uamm-group-panel-text, #f0f0f1) 8%));
+	color: var(--uamm-group-panel-hover-text, var(--uamm-group-panel-text, #fff));
+}
+
+#adminmenu li.uamm-group-member:hover > a.menu-top .wp-menu-image::before,
+#adminmenu li.uamm-group-member.opensub > a.menu-top .wp-menu-image::before,
+#adminmenu li.uamm-group-member > a.menu-top:focus .wp-menu-image::before {
+	color: var(--uamm-group-panel-hover-text, var(--uamm-group-panel-text, #fff));
+}
+
+#adminmenu li.uamm-group-member:hover > a.menu-top .uamm-menu-image-mask,
+#adminmenu li.uamm-group-member.opensub > a.menu-top .uamm-menu-image-mask,
+#adminmenu li.uamm-group-member > a.menu-top:focus .uamm-menu-image-mask {
+	background-color: var(--uamm-group-panel-hover-text, var(--uamm-group-panel-text, #fff)) !important;
+	color: var(--uamm-group-panel-hover-text, var(--uamm-group-panel-text, #fff));
+}
+
+#adminmenu .uamm-group-member.wp-has-current-submenu > a.wp-has-current-submenu::after {
+	display: none;
+}
+
+#adminmenu .uamm-group-member.wp-has-current-submenu > .wp-submenu,
+#adminmenu .uamm-group-member.wp-menu-open > .wp-submenu {
+	background: var(--uamm-submenu-bg, #333);
+	box-sizing: border-box;
+	margin: 0;
+	padding: 2px 0 5px;
+	width: 100%;
+}
+
+#adminmenu .uamm-group-member > .wp-submenu a {
+	box-sizing: border-box;
+	color: var(--uamm-submenu-text, #f0f0f1);
+	line-height: var(--uamm-submenu-item-line-height, 20px);
+	min-height: var(--uamm-menu-item-min-height, 44px);
+	padding: var(--uamm-submenu-item-padding-block, 12px) 12px var(--uamm-submenu-item-padding-block, 12px) 16px;
+	transition: background-color .12s ease, color .12s ease;
+	width: 100%;
+}
+
+#adminmenu li.menu-top:not(.uamm-group-member) > .wp-submenu {
+	background: var(--uamm-submenu-bg, #333);
+}
+
+#adminmenu li.menu-top:not(.uamm-group-member) > .wp-submenu a {
+	color: var(--uamm-submenu-text, #f0f0f1);
+}
+
+#adminmenu .uamm-group-member > .wp-submenu li.current a,
+#adminmenu .uamm-group-member > .wp-submenu a:hover,
+#adminmenu .uamm-group-member > .wp-submenu a:focus {
+	background: var(--uamm-submenu-hover-bg, #2c3338) !important;
+	color: var(--uamm-submenu-hover-text, #fff) !important;
+}
+
+#adminmenu li.menu-top:not(.uamm-group-member) > .wp-submenu li.current a,
+#adminmenu li.menu-top:not(.uamm-group-member) > .wp-submenu a:hover,
+#adminmenu li.menu-top:not(.uamm-group-member) > .wp-submenu a:focus {
+	background: var(--uamm-submenu-hover-bg, #2c3338) !important;
+	color: var(--uamm-submenu-hover-text, #fff) !important;
+}
+
+#adminmenu .uamm-group-member > .wp-submenu li.current a {
+	box-shadow: inset 3px 0 0 currentColor;
+	font-weight: 600;
+}
+
+#adminmenu .uamm-group-member > .wp-submenu a:focus-visible {
+	box-shadow: inset 0 0 0 2px #72aee6;
+	outline: 0;
+}
+
+#adminmenu .uamm-group-member--last {
+	border-radius: 0 0 3px 3px;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, .24);
+}
+
+#adminmenu .uamm-group-member--hidden {
+	display: none;
+}
+
+.folded #adminmenu .uamm-group-toggle {
+	display: flex;
+	justify-content: center;
+	min-height: 42px;
+	padding: 7px 0;
+}
+
+.folded #adminmenu .uamm-group-heading,
+.folded #adminmenu .uamm-group-member {
+	margin-left: 2px;
+	margin-right: 2px;
+	width: calc(100% - 4px);
+}
+
+.folded #adminmenu .uamm-group-member > .wp-submenu {
+	width: 160px;
+}
+
+.folded #adminmenu .uamm-group-label,
+.folded #adminmenu .uamm-group-chevron,
+.folded #adminmenu .uamm-group-pin-toggle,
+.folded #adminmenu .uamm-submenu-indicator {
+	display: none;
+}
+
+body.folded.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top > .uamm-submenu-indicator {
+	display: none;
+}
+
+.uamm-frame-wrap {
+	height: calc(100vh - 70px);
+}
+
+.uamm-frame {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	box-sizing: border-box;
+	height: calc(100% - 60px);
+	width: 100%;
+}
+
+@media screen and (max-width: 960px) {
+	.auto-fold #adminmenu .uamm-group-member > .wp-submenu {
+		width: 160px;
+	}
+}
+
+@media screen and (min-width: 783px) and (max-width: 960px) {
+	.auto-fold #adminmenu .uamm-group-toggle {
+		display: flex;
+		justify-content: center;
+		min-height: 42px;
+		padding: 7px 0;
+	}
+
+	.auto-fold #adminmenu .uamm-group-heading,
+	.auto-fold #adminmenu .uamm-group-member {
+		margin-left: 2px;
+		margin-right: 2px;
+		width: calc(100% - 4px);
+	}
+
+	.auto-fold #adminmenu .uamm-group-label,
+	.auto-fold #adminmenu .uamm-group-chevron,
+	.auto-fold #adminmenu .uamm-group-pin-toggle,
+	.auto-fold #adminmenu .uamm-submenu-indicator {
+		display: none;
+	}
+
+	body.auto-fold.uamm-submenu-indicators #adminmenu > li.menu-top.wp-has-submenu > a.menu-top > .uamm-submenu-indicator {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#adminmenu .uamm-group-chevron,
+	#adminmenu .uamm-group-pin-icon,
+	#adminmenu .uamm-submenu-indicator,
+	#adminmenu .uamm-group-member > a.menu-top,
+	#adminmenu .uamm-group-member > a.menu-top .wp-menu-image::before,
+	#adminmenu .uamm-group-member > .wp-submenu a {
+		transition: none;
+	}
+}

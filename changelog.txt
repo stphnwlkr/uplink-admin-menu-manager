@@ -1,0 +1,57 @@
+# Uplink Admin Menu Manager changelog
+
+## 1.0.0
+
+- Updated the bundled SortableJS library to version 1.15.7.
+- Corrected protected users so they lock saved user-specific menu profiles against other administrators without changing WordPress account, role, or capability permissions.
+- Moved the Users settings tab after Appearance.
+- Removed the plugin-list visibility matrix because it affected the Installed Plugins screen rather than admin-menu visibility and was easily confused with role-specific menu profiles.
+- Added an Appearance-only reset that restores layout and color defaults, clears individual color overrides, and preserves menu structure and access settings.
+- Matched empty item and group color controls to their current global Appearance values so saving an unchanged profile is visually neutral.
+- Added global normal and hover/focus colors for ordinary plugin submenus while preserving per-item overrides.
+- Added touch-specific first-tap submenu expansion and second-tap navigation for top-level links with submenus.
+- Updated fresh-install color, width, spacing, and group-style defaults from the September 1 look-and-feel export.
+- Added adjustable menu-link dividers and optional submenu indicators, enabled by default.
+- Added an anchor-positioned settings-tab highlight with keyboard and reduced-motion support.
+- Removed menu dividers from the final item in each menu, group, and submenu list, and from items immediately before a group heading.
+- Added Wicked Folders compatibility so its folder pane follows the configured admin-menu width.
+- Initial public release.
+- Matched fresh menu and submenu editor order to WordPress's rendered numeric positions.
+- Replaced the legacy WordPress sortable layer with locally bundled SortableJS for smoother bidirectional auto-scrolling, touch input, and movement between the main menu and groups.
+- Added contrast-validated submenu appearance controls.
+- Added global contrast-validated submenu hover and focus colors and prevented the WordPress admin color scheme from overriding grouped submenu states.
+- Added breathing room around settings tabs so keyboard focus rings remain visible.
+- Added group heading controls for font size, weight, letter spacing, and capitalization.
+- Reorganized the settings into a warmer, persistent inspector with instant in-page tabs, compact color rows, segmented typography choices, and visual contrast meters.
+- Added live sidebar previews for Appearance changes and a warning before leaving with unsaved changes.
+- Allowed the protected Menu Manager entry to be organized inside a group.
+- Added searchable Dashicons pickers with live previews beside icon fields.
+- Added custom move and circular disclosure icons with state-aware rotation.
+- Removed unintended top and bottom borders from grouped item panels.
+- Added group-heading spacing and corner controls with flush, square defaults.
+- Added touch-enabled menu reordering and automatic closing of unpinned groups on ungrouped screens.
+- Matched group headings to WordPress's automatically folded sidebar between 783 and 960 pixels.
+- Made the settings layout respond to its available panel width and added a full-width end-of-list drop target.
+- Kept collapsed groups visually stable during dragging and added neutral group-edge zones for predictable between-group placement.
+- Restored simultaneous closed-group drop areas while reserving their inset edges for stable before/after placement.
+- Added a short interior hover-intent threshold and blocked inactive group lists from accepting placeholders, eliminating group-edge flicker.
+- Removed redundant grouped-item margins and widths for a flush panel layout.
+- Added a 44-pixel touch-optimized menu height option.
+- Centered 34-pixel pin targets in touch-optimized group headings and improved compact submenu line height.
+- Removed the first grouped item's top padding so group panels meet their headings without a colored strip.
+
+## Release candidate and beta history
+
+- Added remembered editor group states and an always-load-collapsed preference.
+- Added separate complete and look-and-feel-only JSON transfers.
+- Added an adjustable desktop admin-menu width.
+- Added contrast-validated global and per-group colors for open, collapsed, hover, and item-panel states.
+- Added per-user group pins and a single-open group mode.
+- Kept active nested submenus within their assigned group panels.
+- Added individual and bulk group controls to the menu editor.
+- Removed toolbar customization before release.
+- Replaced per-plugin user selectors with scalable role-level visibility rules.
+- Added protected-user controls and explicit configuration cleanup.
+- Expanded plugin submenus now inherit the global submenu palette even when their top-level menu item is inside a group; explicit per-item colors still override it.
+- Normalized SureCookie submenu dividers so its pseudo-elements do not conflict with touch-optimized menu rows.
+- Fixed hidden and renamed submenu items so changes are applied to WordPress's live submenu array instead of a temporary copy.
