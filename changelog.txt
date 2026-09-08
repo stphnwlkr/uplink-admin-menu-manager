@@ -1,5 +1,9 @@
 # Uplink Admin Menu Manager changelog
 
+## 1.0.1
+
+- Fixed the block editor overlapping a custom-width admin menu when Fullscreen mode is off.
+
 ## 1.0.0
 
 - Updated the bundled SortableJS library to version 1.15.7.

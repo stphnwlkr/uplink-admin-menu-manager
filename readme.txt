@@ -4,7 +4,7 @@ Tags: admin menu, accessibility, menu groups, menu editor, dashboard
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 
 == Changelog ==
 
+= 1.0.1 =
+* Fixed the block editor overlapping a custom-width admin menu when Fullscreen mode is off.
+
 = 1.0.0 =
 * Updated the bundled SortableJS library to version 1.15.7.
 * Fixed group labels overflowing WordPress's automatically folded sidebar.
@@ -133,6 +136,10 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 * Add complete and look-and-feel-only JSON transfer.
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+
+Keeps the block editor beside custom-width admin menus when Fullscreen mode is off.
 
 = 1.0.0 =
 

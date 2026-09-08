@@ -25,6 +25,15 @@ body.uamm-menu-pending #adminmenu {
 		margin-left: var(--uamm-admin-menu-width, 160px);
 	}
 
+	/* Gutenberg uses a fixed shell that does not inherit #wpcontent's offset. */
+	body:not(.folded):not(.is-fullscreen-mode):not(.rtl) .interface-interface-skeleton {
+		left: var(--uamm-admin-menu-width, 160px);
+	}
+
+	body.rtl:not(.folded):not(.is-fullscreen-mode) .interface-interface-skeleton {
+		right: var(--uamm-admin-menu-width, 160px);
+	}
+
 	body:not(.folded) #adminmenu .wp-submenu {
 		width: var(--uamm-admin-menu-width, 160px);
 	}
