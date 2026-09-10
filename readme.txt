@@ -4,7 +4,7 @@ Tags: admin menu, accessibility, menu groups, menu editor, dashboard
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,11 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 
 == Changelog ==
 
+= 1.0.3 =
+* Reorganized site-wide Appearance settings into Layout, Group headings, Menu colors, and Group colors tabs.
+* Split main-menu and plugin-flyout colors into clearly labeled groups without changing saved values or defaults.
+* Added keyboard navigation and tab-specific guidance when a color contrast check prevents saving.
+
 = 1.0.2 =
 * Organized group and menu item controls into consistent General and Appearance tabs.
 * Grouped appearance controls by menu state and kept contrast results with the colors they validate.
@@ -141,6 +146,10 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 * Add complete and look-and-feel-only JSON transfer.
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+
+Makes site-wide Appearance settings easier to find and explains exactly where a failing contrast check needs attention.
 
 = 1.0.2 =
 

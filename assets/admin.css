@@ -306,23 +306,39 @@ body.toplevel_page_uplink-admin-menu-manager #wpbody-content {
 	top: 46px;
 }
 
-.uamm-inspector-nav a {
+.uamm-appearance-tab {
 	align-items: center;
+	appearance: none;
+	background: transparent;
+	border: 0;
 	border-radius: 8px;
 	color: #51463f;
+	cursor: pointer;
 	display: grid;
+	font: inherit;
 	font-weight: 600;
 	gap: 9px;
 	grid-template-columns: 22px 1fr;
 	min-height: 44px;
 	padding: 0 11px;
+	text-align: left;
 	text-decoration: none;
+	width: 100%;
 }
 
-.uamm-inspector-nav a:hover,
-.uamm-inspector-nav a:focus-visible {
+.uamm-appearance-tab:hover,
+.uamm-appearance-tab.is-active {
 	background: var(--uamm-blue-soft);
 	color: #543629;
+}
+
+.uamm-appearance-tab:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 1px;
+}
+
+.uamm-appearance-tab img {
+	opacity: .72;
 }
 
 .uamm-inspector-content {
@@ -338,6 +354,10 @@ body.toplevel_page_uplink-admin-menu-manager #wpbody-content {
 	box-shadow: 0 4px 18px rgba(67, 48, 37, .05);
 	overflow: clip;
 	scroll-margin-top: 48px;
+}
+
+.uamm-inspector-section[hidden] {
+	display: none;
 }
 
 .uamm-inspector-header {
@@ -385,6 +405,37 @@ body.toplevel_page_uplink-admin-menu-manager #wpbody-content {
 
 .uamm-inspector-body > .uamm-card:last-child {
 	border-bottom: 0;
+}
+
+.uamm-color-setting-groups {
+	display: grid;
+	gap: 24px;
+}
+
+.uamm-color-setting-group {
+	border: 0;
+	margin: 0;
+	min-width: 0;
+	padding: 0;
+}
+
+.uamm-color-setting-group + .uamm-color-setting-group {
+	border-top: 1px solid #e2e4e7;
+	padding-top: 22px;
+}
+
+.uamm-color-setting-group legend {
+	color: #6d625b;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .14em;
+	padding: 0;
+	text-transform: uppercase;
+}
+
+.uamm-color-setting-group > p {
+	color: #646970;
+	margin: 7px 0 16px;
 }
 
 .uamm-control-section {
@@ -2173,8 +2224,9 @@ body.uamm-modal-open {
 		position: static;
 	}
 
-	.uamm-inspector-nav a {
+	.uamm-appearance-tab {
 		flex: 0 0 auto;
+		width: auto;
 	}
 
 	.uamm-layout {
@@ -2230,8 +2282,9 @@ body.uamm-modal-open {
 		position: static;
 	}
 
-	.uamm-inspector-nav a {
+	.uamm-appearance-tab {
 		flex: 0 0 auto;
+		width: auto;
 	}
 
 	.uamm-segmented-control {

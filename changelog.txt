@@ -1,5 +1,11 @@
 # Uplink Admin Menu Manager changelog
 
+## 1.0.3
+
+- Reorganized site-wide Appearance settings into Layout, Group headings, Menu colors, and Group colors tabs.
+- Split main-menu and plugin-flyout colors into clearly labeled groups without changing saved values or defaults.
+- Added keyboard navigation and tab-specific guidance when a color contrast check prevents saving.
+
 ## 1.0.2
 
 - Organized group and menu item controls into consistent General and Appearance tabs.

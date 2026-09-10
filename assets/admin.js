@@ -74,6 +74,46 @@
 		} );
 	}
 
+	function initializeAppearanceTabs() {
+		var tabs = Array.from( document.querySelectorAll( '.uamm-appearance-tab[role="tab"]' ) );
+		if ( ! tabs.length ) { return; }
+
+		function activate( tab, moveFocus ) {
+			if ( ! tab ) { return; }
+			tabs.forEach( function ( candidate ) {
+				var selected = candidate === tab;
+				candidate.classList.toggle( 'is-active', selected );
+				candidate.setAttribute( 'aria-selected', selected ? 'true' : 'false' );
+				candidate.tabIndex = selected ? 0 : -1;
+				var panel = document.getElementById( candidate.getAttribute( 'aria-controls' ) );
+				if ( panel ) { panel.hidden = ! selected; }
+			} );
+			if ( moveFocus ) { tab.focus(); }
+		}
+
+		tabs.forEach( function ( tab, index ) {
+			tab.addEventListener( 'click', function () { activate( tab, false ); } );
+			tab.addEventListener( 'keydown', function ( event ) {
+				if ( ! [ 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End' ].includes( event.key ) ) { return; }
+				event.preventDefault();
+				var targetIndex = index;
+				if ( 'ArrowRight' === event.key || 'ArrowDown' === event.key ) { targetIndex = ( index + 1 ) % tabs.length; }
+				if ( 'ArrowLeft' === event.key || 'ArrowUp' === event.key ) { targetIndex = ( index - 1 + tabs.length ) % tabs.length; }
+				if ( 'Home' === event.key ) { targetIndex = 0; }
+				if ( 'End' === event.key ) { targetIndex = tabs.length - 1; }
+				activate( tabs[ targetIndex ], true );
+			} );
+		} );
+
+		var requestedPanel = window.location.hash ? document.getElementById( window.location.hash.slice( 1 ) ) : null;
+		var requestedTab = requestedPanel ? tabs.find( function ( tab ) { return tab.getAttribute( 'aria-controls' ) === requestedPanel.id; } ) : null;
+		activate( requestedTab || tabs.find( function ( tab ) { return 'true' === tab.getAttribute( 'aria-selected' ); } ) || tabs[ 0 ], false );
+		window.uammActivateAppearancePanel = function ( panel ) {
+			var tab = panel ? tabs.find( function ( candidate ) { return candidate.getAttribute( 'aria-controls' ) === panel.id; } ) : null;
+			if ( tab ) { activate( tab, false ); }
+		};
+	}
+
 	function initializeRoleAccessControls() {
 		document.querySelectorAll( '[data-uamm-role-access-row]' ).forEach( function ( row ) {
 			var access = row.querySelector( '[data-uamm-role-access]' );
@@ -720,7 +760,15 @@
 		var button = form.querySelector( 'button[type="submit"]' );
 		if ( button ) { button.disabled = ! valid; }
 		output.className = 'uamm-save-state ' + ( valid ? 'is-ready' : 'is-blocked' );
-		output.textContent = valid ? strings.contrastReady || 'Contrast checks pass.' : strings.appearanceContrastBlocked || 'Cannot save: fix the admin menu or group contrast checks.';
+		if ( valid ) {
+			output.textContent = strings.contrastReady || 'Contrast checks pass.';
+		} else if ( ! menuValid && ! groupValid ) {
+			output.textContent = strings.allColorsContrastBlocked || 'Cannot save: fix contrast in Menu colors and Group colors.';
+		} else if ( ! menuValid ) {
+			output.textContent = strings.menuColorsContrastBlocked || 'Cannot save: fix contrast in Menu colors.';
+		} else {
+			output.textContent = strings.groupColorsContrastBlocked || 'Cannot save: fix contrast in Group colors.';
+		}
 	}
 
 	function addGroup() {
@@ -1468,6 +1516,7 @@
 			var invalidSection = ( menuValid ? style : menuColors ).closest( '.uamm-inspector-section' );
 			var invalidInput = invalidSection ? invalidSection.querySelector( '[aria-invalid="true"]' ) : null;
 			if ( summary ) { summary.hidden = false; summary.textContent = strings.contrastBlocked || 'Color changes were not saved. Fix the failing contrast checks below.'; }
+			if ( invalidSection && window.uammActivateAppearancePanel ) { window.uammActivateAppearancePanel( invalidSection ); }
 			if ( invalidSection ) { invalidSection.scrollIntoView( { behavior: 'smooth', block: 'start' } ); }
 			if ( invalidInput ) { invalidInput.focus( { preventScroll: true } ); } else if ( summary ) { summary.focus( { preventScroll: true } ); }
 			return;
@@ -1487,6 +1536,7 @@
 		if ( event.target.matches( '.uamm-admin input[type="color"]' ) ) { updateColorSwatch( event.target ); }
 	} );
 	initializeAdminTabs();
+	initializeAppearanceTabs();
 	initializeRoleAccessControls();
 	initializeAdminMenuColors();
 	initializeMenuWidth();
