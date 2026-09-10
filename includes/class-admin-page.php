@@ -358,33 +358,46 @@ final class Admin_Page {
 		$submenu_text_fallback             = (string) $appearance_defaults['submenu_text'];
 		$submenu_hover_background_fallback = (string) $appearance_defaults['submenu_hover_background'];
 		$submenu_hover_text_fallback       = (string) $appearance_defaults['submenu_hover_text'];
+		$item_settings_id                  = 'uamm-item-settings-' . md5( $slug );
 		?>
 		<li class="uamm-menu-item" data-slug="<?php echo esc_attr( $slug ); ?>" data-safety-item="<?php echo esc_attr( $is_safety_item ? '1' : '0' ); ?>">
 			<div class="uamm-menu-item__summary"><button class="uamm-drag" type="button" aria-label="<?php esc_attr_e( 'Drag to reorder', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-drag" aria-hidden="true"></span></button><?php self::render_menu_icon_preview( $preview_icon, 'uamm-menu-item__icon' ); ?><strong><?php echo esc_html( $title ); ?></strong><code><?php echo esc_html( $slug ); ?></code><span class="uamm-row-actions"><button class="uamm-move-up" type="button" aria-label="<?php esc_attr_e( 'Move up', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-move-up" aria-hidden="true"></span></button><button class="uamm-move-down" type="button" aria-label="<?php esc_attr_e( 'Move down', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-move-down" aria-hidden="true"></span></button><button class="uamm-disclosure" type="button" aria-expanded="false" aria-label="<?php esc_attr_e( 'Edit menu item', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-chevron" aria-hidden="true"></span></button></span></div>
 			<div class="uamm-menu-item__details" hidden>
-				<div class="uamm-field-grid">
-					<label><?php esc_html_e( 'Menu label', 'uplink-admin-menu-manager' ); ?><input data-field="title" type="text" value="<?php echo esc_attr( (string) ( $config['title'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( $title ); ?>"></label>
-					<label><?php esc_html_e( 'Group', 'uplink-admin-menu-manager' ); ?><select data-field="group"><option value=""><?php esc_html_e( 'No group', 'uplink-admin-menu-manager' ); ?></option><?php foreach ( $profile['groups'] as $candidate ) : ?><option value="<?php echo esc_attr( $candidate['id'] ); ?>" <?php selected( $group, $candidate['id'] ); ?>><?php echo esc_html( $candidate['label'] ); ?></option><?php endforeach; ?></select></label>
-					<div class="uamm-icon-field"><label><span><?php esc_html_e( 'Icon or URL', 'uplink-admin-menu-manager' ); ?></span><span class="uamm-icon-control"><?php self::render_menu_icon_preview( $preview_icon, 'uamm-icon-field__preview' ); ?><input data-field="icon" type="text" value="<?php echo esc_attr( $configured_icon ); ?>" placeholder="dashicons-admin-generic"><button class="button uamm-open-dashicon-picker" type="button" aria-label="<?php esc_attr_e( 'Choose Dashicon', 'uplink-admin-menu-manager' ); ?>"><span class="dashicons dashicons-search" aria-hidden="true"></span></button></span></label></div>
-					<label><?php esc_html_e( 'CSS classes', 'uplink-admin-menu-manager' ); ?><input data-field="css_class" type="text" value="<?php echo esc_attr( (string) ( $config['css_class'] ?? '' ) ); ?>"></label>
-					<label><?php esc_html_e( 'Override link URL', 'uplink-admin-menu-manager' ); ?><input data-field="url" type="url" value="<?php echo esc_attr( (string) ( $config['url'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Keep the original URL', 'uplink-admin-menu-manager' ); ?>" <?php disabled( $is_safety_item ); ?>></label>
-					<label><?php esc_html_e( 'Open in', 'uplink-admin-menu-manager' ); ?><select data-field="open_mode" <?php disabled( $is_safety_item ); ?>><option value="same" <?php selected( $config['open_mode'] ?? 'same', 'same' ); ?>><?php esc_html_e( 'Same window', 'uplink-admin-menu-manager' ); ?></option><option value="new" <?php selected( $config['open_mode'] ?? '', 'new' ); ?>><?php esc_html_e( 'New tab', 'uplink-admin-menu-manager' ); ?></option><option value="none" <?php selected( $config['open_mode'] ?? '', 'none' ); ?>><?php esc_html_e( 'Non-clickable', 'uplink-admin-menu-manager' ); ?></option></select></label>
+				<div class="uamm-group-settings-tabs uamm-item-settings-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Menu item settings', 'uplink-admin-menu-manager' ); ?>">
+					<button id="<?php echo esc_attr( $item_settings_id ); ?>-general-tab" class="uamm-group-settings-tab uamm-item-settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="<?php echo esc_attr( $item_settings_id ); ?>-general"><?php esc_html_e( 'General', 'uplink-admin-menu-manager' ); ?></button>
+					<button id="<?php echo esc_attr( $item_settings_id ); ?>-appearance-tab" class="uamm-group-settings-tab uamm-item-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="<?php echo esc_attr( $item_settings_id ); ?>-appearance" tabindex="-1"><?php esc_html_e( 'Appearance', 'uplink-admin-menu-manager' ); ?></button>
 				</div>
-				<fieldset class="uamm-item-color-section" data-item-appearance><legend><?php esc_html_e( 'Top-level item appearance', 'uplink-admin-menu-manager' ); ?></legend><div class="uamm-field-grid">
-					<?php self::render_item_color_field( __( 'Background', 'uplink-admin-menu-manager' ), 'background', (string) ( $config['background'] ?? '' ), $item_background_fallback ); ?>
-					<?php self::render_item_color_field( __( 'Text and icon', 'uplink-admin-menu-manager' ), 'text_color', (string) ( $config['text_color'] ?? '' ), $item_text_fallback ); ?>
+				<div id="<?php echo esc_attr( $item_settings_id ); ?>-general" class="uamm-group-settings-panel uamm-item-settings-panel" role="tabpanel" aria-labelledby="<?php echo esc_attr( $item_settings_id ); ?>-general-tab">
+					<fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Item details', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Change how this menu item is labeled, grouped, and linked.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+						<label><?php esc_html_e( 'Menu label', 'uplink-admin-menu-manager' ); ?><input data-field="title" type="text" value="<?php echo esc_attr( (string) ( $config['title'] ?? '' ) ); ?>" placeholder="<?php echo esc_attr( $title ); ?>"></label>
+						<label><?php esc_html_e( 'Group', 'uplink-admin-menu-manager' ); ?><select data-field="group"><option value=""><?php esc_html_e( 'No group', 'uplink-admin-menu-manager' ); ?></option><?php foreach ( $profile['groups'] as $candidate ) : ?><option value="<?php echo esc_attr( $candidate['id'] ); ?>" <?php selected( $group, $candidate['id'] ); ?>><?php echo esc_html( $candidate['label'] ); ?></option><?php endforeach; ?></select></label>
+						<div class="uamm-icon-field"><label><span><?php esc_html_e( 'Icon or URL', 'uplink-admin-menu-manager' ); ?></span><span class="uamm-icon-control"><?php self::render_menu_icon_preview( $preview_icon, 'uamm-icon-field__preview' ); ?><input data-field="icon" type="text" value="<?php echo esc_attr( $configured_icon ); ?>" placeholder="dashicons-admin-generic"><button class="button uamm-open-dashicon-picker" type="button" aria-label="<?php esc_attr_e( 'Choose Dashicon', 'uplink-admin-menu-manager' ); ?>"><span class="dashicons dashicons-search" aria-hidden="true"></span></button></span></label></div>
+						<label><?php esc_html_e( 'CSS classes', 'uplink-admin-menu-manager' ); ?><input data-field="css_class" type="text" value="<?php echo esc_attr( (string) ( $config['css_class'] ?? '' ) ); ?>"></label>
+						<label><?php esc_html_e( 'Override link URL', 'uplink-admin-menu-manager' ); ?><input data-field="url" type="url" value="<?php echo esc_attr( (string) ( $config['url'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Keep the original URL', 'uplink-admin-menu-manager' ); ?>" <?php disabled( $is_safety_item ); ?>></label>
+						<label><?php esc_html_e( 'Open in', 'uplink-admin-menu-manager' ); ?><select data-field="open_mode" <?php disabled( $is_safety_item ); ?>><option value="same" <?php selected( $config['open_mode'] ?? 'same', 'same' ); ?>><?php esc_html_e( 'Same window', 'uplink-admin-menu-manager' ); ?></option><option value="new" <?php selected( $config['open_mode'] ?? '', 'new' ); ?>><?php esc_html_e( 'New tab', 'uplink-admin-menu-manager' ); ?></option><option value="none" <?php selected( $config['open_mode'] ?? '', 'none' ); ?>><?php esc_html_e( 'Non-clickable', 'uplink-admin-menu-manager' ); ?></option></select></label>
+					</div></fieldset>
+					<fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Visibility', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Control whether this item appears in the selected profile.', 'uplink-admin-menu-manager' ); ?></p>
+						<label class="uamm-check uamm-item-visibility-control"><input data-field="hidden" type="checkbox" <?php checked( ! empty( $config['hidden'] ) ); ?> <?php disabled( $is_safety_item ); ?>><span><?php esc_html_e( 'Hide this item for the selected profile', 'uplink-admin-menu-manager' ); ?><?php if ( $is_safety_item ) : ?><small><?php esc_html_e( 'This essential navigation item can be moved into a group, but it cannot be hidden or redirected.', 'uplink-admin-menu-manager' ); ?></small><?php endif; ?></span></label>
+					</fieldset>
+					<?php if ( ! empty( $submenu[ $slug ] ) ) : ?><fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Submenu items', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Rename, move, or hide individual links in this submenu.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-submenu"><?php foreach ( $submenu[ $slug ] as $child ) { self::render_submenu_item( $slug, $child, $profile ); } ?></div></fieldset><?php endif; ?>
 				</div>
-				<?php if ( ! empty( $submenu[ $slug ] ) ) : ?>
-					<h4><?php esc_html_e( 'Expanded submenu appearance', 'uplink-admin-menu-manager' ); ?></h4><p><?php esc_html_e( 'Optional colors for the submenu panel shown when this menu item is active or expanded.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
-						<?php self::render_item_color_field( __( 'Submenu background', 'uplink-admin-menu-manager' ), 'submenu_background', (string) ( $config['submenu_background'] ?? '' ), $submenu_background_fallback ); ?>
-						<?php self::render_item_color_field( __( 'Submenu text', 'uplink-admin-menu-manager' ), 'submenu_text_color', (string) ( $config['submenu_text_color'] ?? '' ), $submenu_text_fallback ); ?>
-						<?php self::render_item_color_field( __( 'Submenu hover and active background', 'uplink-admin-menu-manager' ), 'submenu_hover_background', (string) ( $config['submenu_hover_background'] ?? '' ), $submenu_hover_background_fallback ); ?>
-						<?php self::render_item_color_field( __( 'Submenu hover and active text', 'uplink-admin-menu-manager' ), 'submenu_hover_text_color', (string) ( $config['submenu_hover_text_color'] ?? '' ), $submenu_hover_text_fallback ); ?>
+				<div id="<?php echo esc_attr( $item_settings_id ); ?>-appearance" class="uamm-group-settings-panel uamm-item-settings-panel" role="tabpanel" aria-labelledby="<?php echo esc_attr( $item_settings_id ); ?>-appearance-tab" hidden data-item-appearance>
+					<div class="uamm-group-settings-sections">
+						<fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Top-level item', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Colors for this item in the main admin menu.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+							<?php self::render_item_color_field( __( 'Background', 'uplink-admin-menu-manager' ), 'background', (string) ( $config['background'] ?? '' ), $item_background_fallback ); ?>
+							<?php self::render_item_color_field( __( 'Text and icon', 'uplink-admin-menu-manager' ), 'text_color', (string) ( $config['text_color'] ?? '' ), $item_text_fallback ); ?>
+						</div></fieldset>
+						<?php if ( ! empty( $submenu[ $slug ] ) ) : ?>
+							<fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Expanded submenu', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Optional colors for the submenu panel shown when this item is active or expanded.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+								<?php self::render_item_color_field( __( 'Submenu background', 'uplink-admin-menu-manager' ), 'submenu_background', (string) ( $config['submenu_background'] ?? '' ), $submenu_background_fallback ); ?>
+								<?php self::render_item_color_field( __( 'Submenu text', 'uplink-admin-menu-manager' ), 'submenu_text_color', (string) ( $config['submenu_text_color'] ?? '' ), $submenu_text_fallback ); ?>
+								<?php self::render_item_color_field( __( 'Submenu hover and active background', 'uplink-admin-menu-manager' ), 'submenu_hover_background', (string) ( $config['submenu_hover_background'] ?? '' ), $submenu_hover_background_fallback ); ?>
+								<?php self::render_item_color_field( __( 'Submenu hover and active text', 'uplink-admin-menu-manager' ), 'submenu_hover_text_color', (string) ( $config['submenu_hover_text_color'] ?? '' ), $submenu_hover_text_fallback ); ?>
+							</div></fieldset>
+						<?php endif; ?>
 					</div>
-				<?php endif; ?>
-				<div class="uamm-contrast-status" data-item-contrast aria-live="polite"></div></fieldset>
-				<label class="uamm-check"><input data-field="hidden" type="checkbox" <?php checked( ! empty( $config['hidden'] ) ); ?> <?php disabled( $is_safety_item ); ?>><span><?php esc_html_e( 'Hide this item for the selected profile', 'uplink-admin-menu-manager' ); ?><?php if ( $is_safety_item ) : ?><small><?php esc_html_e( 'This essential navigation item can be moved into a group, but it cannot be hidden or redirected.', 'uplink-admin-menu-manager' ); ?></small><?php endif; ?></span></label>
-				<?php if ( ! empty( $submenu[ $slug ] ) ) : ?><div class="uamm-submenu"><h3><?php esc_html_e( 'Submenu items', 'uplink-admin-menu-manager' ); ?></h3><?php foreach ( $submenu[ $slug ] as $child ) { self::render_submenu_item( $slug, $child, $profile ); } ?></div><?php endif; ?>
+					<div class="uamm-contrast-status" data-item-contrast aria-live="polite"></div>
+				</div>
 			</div>
 		</li>
 		<?php
@@ -460,32 +473,52 @@ final class Admin_Page {
 		<li class="uamm-menu-group" data-group-id="<?php echo esc_attr( $id ); ?>">
 			<div class="uamm-menu-group__summary"><button class="uamm-drag" type="button" aria-label="<?php esc_attr_e( 'Drag group to reorder', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-drag" aria-hidden="true"></span></button><span class="uamm-group-row-icon dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span><strong data-group-summary-label><?php echo esc_html( $label ); ?></strong><span class="uamm-group-count"><?php echo esc_html( $count_label ); ?></span><span class="uamm-row-actions"><button class="uamm-move-up" type="button" aria-label="<?php esc_attr_e( 'Move group up', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-move-up" aria-hidden="true"></span></button><button class="uamm-move-down" type="button" aria-label="<?php esc_attr_e( 'Move group down', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-move-down" aria-hidden="true"></span></button><button class="uamm-group-collapse" type="button" aria-expanded="true" aria-controls="<?php echo esc_attr( $items_id ); ?>" aria-label="<?php echo esc_attr( $collapse_label ); ?>"><span class="uamm-control-icon uamm-icon-chevron" aria-hidden="true"></span></button><button class="uamm-group-disclosure" type="button" aria-expanded="false" aria-label="<?php esc_attr_e( 'Edit group settings', 'uplink-admin-menu-manager' ); ?>"><span class="uamm-control-icon uamm-icon-settings" aria-hidden="true"></span></button></span></div>
 			<div class="uamm-menu-group__details" hidden>
-				<div class="uamm-field-grid">
-					<label><?php esc_html_e( 'Group label', 'uplink-admin-menu-manager' ); ?><input data-group-field="label" type="text" value="<?php echo esc_attr( $label ); ?>"></label>
-					<div class="uamm-icon-field"><label><span><?php esc_html_e( 'Dashicon', 'uplink-admin-menu-manager' ); ?></span><span class="uamm-icon-control"><span class="uamm-icon-field__preview dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span><input data-group-field="icon" type="text" value="<?php echo esc_attr( $icon ); ?>"><button class="button uamm-open-dashicon-picker" type="button" aria-label="<?php esc_attr_e( 'Choose Dashicon', 'uplink-admin-menu-manager' ); ?>"><span class="dashicons dashicons-search" aria-hidden="true"></span></button></span></label></div>
-					<?php
-					self::render_group_color_field( __( 'Open heading background', 'uplink-admin-menu-manager' ), 'background', $background, (string) $global_style['background'] );
-					self::render_group_color_field( __( 'Open heading text and icon color', 'uplink-admin-menu-manager' ), 'text_color', $text_color, (string) $global_style['text_color'] );
-					self::render_group_color_field( __( 'Heading border color', 'uplink-admin-menu-manager' ), 'border_color', $border_color, (string) $global_style['border_color'] );
-					self::render_group_color_field( __( 'Open heading hover background', 'uplink-admin-menu-manager' ), 'hover_background', $hover_background, (string) $global_style['hover_background'] );
-					self::render_group_color_field( __( 'Open heading hover text and icon color', 'uplink-admin-menu-manager' ), 'hover_text_color', $hover_text_color, (string) $global_style['hover_text_color'] );
-					self::render_group_color_field( __( 'Collapsed heading background', 'uplink-admin-menu-manager' ), 'collapsed_background', $collapsed_background, (string) $global_style['collapsed_background'] );
-					self::render_group_color_field( __( 'Collapsed heading text and icon color', 'uplink-admin-menu-manager' ), 'collapsed_text_color', $collapsed_text_color, (string) $global_style['collapsed_text_color'] );
-					self::render_group_color_field( __( 'Collapsed heading hover background', 'uplink-admin-menu-manager' ), 'collapsed_hover_background', $collapsed_hover_background, (string) $global_style['collapsed_hover_background'] );
-					self::render_group_color_field( __( 'Collapsed heading hover text and icon color', 'uplink-admin-menu-manager' ), 'collapsed_hover_text_color', $collapsed_hover_text_color, (string) $global_style['collapsed_hover_text_color'] );
-					self::render_group_color_field( __( 'Item panel background', 'uplink-admin-menu-manager' ), 'panel_background', $panel_background, (string) $global_style['panel_background'] );
-					self::render_group_color_field( __( 'Item panel text and icon color', 'uplink-admin-menu-manager' ), 'panel_text_color', $panel_text_color, (string) $global_style['panel_text_color'] );
-					self::render_group_color_field( __( 'Item panel border color', 'uplink-admin-menu-manager' ), 'panel_border_color', $panel_border_color, (string) $global_style['panel_border_color'] );
-					self::render_group_color_field( __( 'Item hover background', 'uplink-admin-menu-manager' ), 'panel_hover_background', $panel_hover_background, (string) $global_style['panel_hover_background'] );
-					self::render_group_color_field( __( 'Item hover text and icon color', 'uplink-admin-menu-manager' ), 'panel_hover_text_color', $panel_hover_text_color, (string) $global_style['panel_hover_text_color'] );
-					?>
-					<label class="uamm-check"><input data-group-field="show_heading_border" type="checkbox" <?php checked( $show_heading_border ); ?>><?php esc_html_e( 'Show heading border', 'uplink-admin-menu-manager' ); ?></label>
-					<label class="uamm-check"><input data-group-field="show_panel_border" type="checkbox" <?php checked( $show_panel_border ); ?>><?php esc_html_e( 'Show item panel border', 'uplink-admin-menu-manager' ); ?></label>
+				<div class="uamm-group-settings-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Group settings', 'uplink-admin-menu-manager' ); ?>">
+					<button id="<?php echo esc_attr( $items_id ); ?>-general-tab" class="uamm-group-settings-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="<?php echo esc_attr( $items_id ); ?>-general"><?php esc_html_e( 'General', 'uplink-admin-menu-manager' ); ?></button>
+					<button id="<?php echo esc_attr( $items_id ); ?>-appearance-tab" class="uamm-group-settings-tab" type="button" role="tab" aria-selected="false" aria-controls="<?php echo esc_attr( $items_id ); ?>-appearance" tabindex="-1"><?php esc_html_e( 'Appearance', 'uplink-admin-menu-manager' ); ?></button>
 				</div>
-				<div class="uamm-contrast-status" data-group-contrast aria-live="polite"></div>
-				<div class="uamm-group-state-options">
-					<label class="uamm-check"><input data-group-field="collapsed" type="checkbox" <?php checked( ! $pinned && ! empty( $group['collapsed'] ) ); ?> <?php disabled( $pinned ); ?>><?php esc_html_e( 'Start collapsed for users who have not chosen a state', 'uplink-admin-menu-manager' ); ?></label>
-					<label class="uamm-check"><input data-group-field="pinned" type="checkbox" <?php checked( $pinned ); ?>><?php esc_html_e( 'Pin this group open by default', 'uplink-admin-menu-manager' ); ?></label>
+				<div id="<?php echo esc_attr( $items_id ); ?>-general" class="uamm-group-settings-panel" role="tabpanel" aria-labelledby="<?php echo esc_attr( $items_id ); ?>-general-tab">
+					<fieldset class="uamm-group-settings-section"><legend><?php esc_html_e( 'Group details', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Set the label and icon shown in the admin menu.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+						<label><?php esc_html_e( 'Group label', 'uplink-admin-menu-manager' ); ?><input data-group-field="label" type="text" value="<?php echo esc_attr( $label ); ?>"></label>
+						<div class="uamm-icon-field"><label><span><?php esc_html_e( 'Dashicon', 'uplink-admin-menu-manager' ); ?></span><span class="uamm-icon-control"><span class="uamm-icon-field__preview dashicons <?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span><input data-group-field="icon" type="text" value="<?php echo esc_attr( $icon ); ?>"><button class="button uamm-open-dashicon-picker" type="button" aria-label="<?php esc_attr_e( 'Choose Dashicon', 'uplink-admin-menu-manager' ); ?>"><span class="dashicons dashicons-search" aria-hidden="true"></span></button></span></label></div>
+					</div></fieldset>
+					<fieldset class="uamm-group-settings-section"><legend><?php esc_html_e( 'Group behavior', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Choose the initial state for users who have not set their own preference.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-group-state-options">
+						<label class="uamm-check"><input data-group-field="collapsed" type="checkbox" <?php checked( ! $pinned && ! empty( $group['collapsed'] ) ); ?> <?php disabled( $pinned ); ?>><span><?php esc_html_e( 'Start collapsed', 'uplink-admin-menu-manager' ); ?><small><?php esc_html_e( 'Users can still open the group from the admin menu.', 'uplink-admin-menu-manager' ); ?></small></span></label>
+						<label class="uamm-check"><input data-group-field="pinned" type="checkbox" <?php checked( $pinned ); ?>><span><?php esc_html_e( 'Pin this group open by default', 'uplink-admin-menu-manager' ); ?><small><?php esc_html_e( 'Users can change the pin from the admin menu.', 'uplink-admin-menu-manager' ); ?></small></span></label>
+					</div></fieldset>
+				</div>
+				<div id="<?php echo esc_attr( $items_id ); ?>-appearance" class="uamm-group-settings-panel" role="tabpanel" aria-labelledby="<?php echo esc_attr( $items_id ); ?>-appearance-tab" hidden>
+					<div class="uamm-group-settings-sections">
+						<fieldset class="uamm-group-settings-section"><legend><?php esc_html_e( 'Open heading', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Colors used while the group is expanded.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+					<?php
+					self::render_group_color_field( __( 'Background', 'uplink-admin-menu-manager' ), 'background', $background, (string) $global_style['background'] );
+					self::render_group_color_field( __( 'Text and icon', 'uplink-admin-menu-manager' ), 'text_color', $text_color, (string) $global_style['text_color'] );
+					self::render_group_color_field( __( 'Hover background', 'uplink-admin-menu-manager' ), 'hover_background', $hover_background, (string) $global_style['hover_background'] );
+					self::render_group_color_field( __( 'Hover text and icon', 'uplink-admin-menu-manager' ), 'hover_text_color', $hover_text_color, (string) $global_style['hover_text_color'] );
+					self::render_group_color_field( __( 'Border', 'uplink-admin-menu-manager' ), 'border_color', $border_color, (string) $global_style['border_color'] );
+					?>
+						<label class="uamm-check uamm-group-border-toggle"><input data-group-field="show_heading_border" type="checkbox" <?php checked( $show_heading_border ); ?>><span><?php esc_html_e( 'Show heading border', 'uplink-admin-menu-manager' ); ?><small><?php esc_html_e( 'Uses the border color shown beside this option.', 'uplink-admin-menu-manager' ); ?></small></span></label>
+						</div></fieldset>
+						<fieldset class="uamm-group-settings-section"><legend><?php esc_html_e( 'Collapsed heading', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Colors used while the group is closed.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+						<?php
+						self::render_group_color_field( __( 'Background', 'uplink-admin-menu-manager' ), 'collapsed_background', $collapsed_background, (string) $global_style['collapsed_background'] );
+						self::render_group_color_field( __( 'Text and icon', 'uplink-admin-menu-manager' ), 'collapsed_text_color', $collapsed_text_color, (string) $global_style['collapsed_text_color'] );
+						self::render_group_color_field( __( 'Hover background', 'uplink-admin-menu-manager' ), 'collapsed_hover_background', $collapsed_hover_background, (string) $global_style['collapsed_hover_background'] );
+						self::render_group_color_field( __( 'Hover text and icon', 'uplink-admin-menu-manager' ), 'collapsed_hover_text_color', $collapsed_hover_text_color, (string) $global_style['collapsed_hover_text_color'] );
+						?>
+						</div></fieldset>
+						<fieldset class="uamm-group-settings-section"><legend><?php esc_html_e( 'Item panel', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Colors used by top-level menu items inside this group.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+						<?php
+						self::render_group_color_field( __( 'Background', 'uplink-admin-menu-manager' ), 'panel_background', $panel_background, (string) $global_style['panel_background'] );
+						self::render_group_color_field( __( 'Text and icon', 'uplink-admin-menu-manager' ), 'panel_text_color', $panel_text_color, (string) $global_style['panel_text_color'] );
+						self::render_group_color_field( __( 'Hover and active background', 'uplink-admin-menu-manager' ), 'panel_hover_background', $panel_hover_background, (string) $global_style['panel_hover_background'] );
+						self::render_group_color_field( __( 'Hover and active text and icon', 'uplink-admin-menu-manager' ), 'panel_hover_text_color', $panel_hover_text_color, (string) $global_style['panel_hover_text_color'] );
+						self::render_group_color_field( __( 'Border', 'uplink-admin-menu-manager' ), 'panel_border_color', $panel_border_color, (string) $global_style['panel_border_color'] );
+						?>
+						<label class="uamm-check uamm-group-border-toggle"><input data-group-field="show_panel_border" type="checkbox" <?php checked( $show_panel_border ); ?>><span><?php esc_html_e( 'Show item panel border', 'uplink-admin-menu-manager' ); ?><small><?php esc_html_e( 'Uses the border color shown beside this option.', 'uplink-admin-menu-manager' ); ?></small></span></label>
+						</div></fieldset>
+					</div>
+					<div class="uamm-contrast-status" data-group-contrast aria-live="polite"></div>
 				</div>
 				<button class="button-link-delete uamm-remove-group" type="button"><?php esc_html_e( 'Remove group and keep its menu items', 'uplink-admin-menu-manager' ); ?></button>
 			</div>
@@ -594,7 +627,7 @@ final class Admin_Page {
 					self::render_global_group_color_field( __( 'Hover text and icon', 'uplink-admin-menu-manager' ), 'collapsed_hover_text_color', (string) $group_style['collapsed_hover_text_color'] );
 					?>
 				</div></fieldset>
-				<fieldset class="uamm-group-color-section"><legend><?php esc_html_e( 'Item panel', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Colors for grouped menu items and their nested submenu rows.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
+				<fieldset class="uamm-group-color-section"><legend><?php esc_html_e( 'Item panel', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Colors for top-level menu items inside a group. Nested submenu rows use the plugin submenu colors.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-field-grid">
 					<?php
 					self::render_global_group_color_field( __( 'Background', 'uplink-admin-menu-manager' ), 'panel_background', (string) $group_style['panel_background'] );
 					self::render_global_group_color_field( __( 'Text and icon', 'uplink-admin-menu-manager' ), 'panel_text_color', (string) $group_style['panel_text_color'] );

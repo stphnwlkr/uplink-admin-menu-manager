@@ -2,7 +2,7 @@
 
 Uplink Admin Menu Manager is a clean-room WordPress plugin for shaping the admin menu around the work each role or user performs.
 
-The `1.0.1` release fixes the block editor overlapping a custom-width admin menu when Fullscreen mode is off. The plugin also includes touch-enabled handle-based menu and submenu ordering, labels, visibility, icons, adjustable admin-menu width, group-heading spacing and corner controls, global, per-group, and expanded-submenu color controls, optional borders, custom links, protected user profiles, complete or look-and-feel-only JSON transfer, remembered editor group views, and clearly nested accessible groups.
+The `1.0.2` release organizes group and menu item controls into consistent, keyboard-accessible General and Appearance tabs. The plugin also includes touch-enabled handle-based menu and submenu ordering, labels, visibility, icons, adjustable admin-menu width, group-heading spacing and corner controls, global, per-group, and expanded-submenu color controls, optional borders, custom links, protected user profiles, complete or look-and-feel-only JSON transfer, remembered editor group views, and clearly nested accessible groups.
 
 Deactivating or deleting the plugin leaves WordPress data and saved Menu Manager configuration intact. Administrators can clear the stored configuration explicitly from the Import and export screen.
 

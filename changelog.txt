@@ -1,5 +1,11 @@
 # Uplink Admin Menu Manager changelog
 
+## 1.0.2
+
+- Organized group and menu item controls into consistent General and Appearance tabs.
+- Grouped appearance controls by menu state and kept contrast results with the colors they validate.
+- Added keyboard navigation to the new settings tabs.
+
 ## 1.0.1
 
 - Fixed the block editor overlapping a custom-width admin menu when Fullscreen mode is off.

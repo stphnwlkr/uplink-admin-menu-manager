@@ -918,8 +918,18 @@ body.uamm-is-sorting .uamm-menu-list::after {
 
 .uamm-group-state-options {
 	display: grid;
-	gap: 8px;
-	margin-top: 12px;
+	gap: 10px 18px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	margin-top: 0;
+}
+
+.uamm-group-state-options .uamm-check {
+	background: #f6f1e9;
+	border: 1px solid #e4ddd4;
+	border-radius: 10px;
+	box-sizing: border-box;
+	margin-top: 0;
+	padding: 12px 14px;
 }
 
 .uamm-menu-item {
@@ -983,6 +993,110 @@ body.uamm-is-sorting .uamm-menu-list::after {
 	border: 1px solid #b8d8f0;
 	border-radius: 7px;
 	padding: 14px;
+}
+
+.uamm-group-settings-tabs {
+	background: #f6f1e9;
+	border: 1px solid #ded6ca;
+	border-radius: 10px;
+	display: grid;
+	gap: 3px;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	margin-bottom: 16px;
+	padding: 4px;
+}
+
+.uamm-group-settings-tab {
+	background: transparent;
+	border: 0;
+	border-radius: 7px;
+	color: #6d625b;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+	min-height: 38px;
+	padding: 8px 14px;
+}
+
+.uamm-group-settings-tab:hover {
+	background: rgba(255, 255, 255, .62);
+	color: #372a23;
+}
+
+.uamm-group-settings-tab.is-active {
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(74, 50, 37, .12);
+	color: #372a23;
+}
+
+.uamm-group-settings-tab:focus-visible {
+	box-shadow: 0 0 0 2px #2271b1;
+	outline: 0;
+}
+
+.uamm-group-settings-panel[hidden] {
+	display: none;
+}
+
+.uamm-group-settings-sections,
+.uamm-group-settings-panel {
+	display: grid;
+	gap: 16px;
+}
+
+.uamm-group-settings-section {
+	background: #fffdf9;
+	border: 1px solid #ded6ca;
+	border-radius: 10px;
+	box-sizing: border-box;
+	margin: 0;
+	min-width: 0;
+	padding: 16px;
+}
+
+.uamm-group-settings-section legend {
+	color: #6d625b;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: .12em;
+	padding: 0 6px;
+	text-transform: uppercase;
+}
+
+.uamm-group-settings-section > p {
+	color: var(--uamm-muted);
+	font-size: 13px;
+	margin: 0 0 14px;
+}
+
+.uamm-group-settings-section .uamm-field-grid {
+	gap: 14px 18px;
+}
+
+.uamm-group-border-toggle {
+	align-self: stretch;
+	background: #f6f1e9;
+	border: 1px solid #e4ddd4;
+	border-radius: 12px;
+	box-sizing: border-box;
+	margin-top: 0;
+	min-height: 68px;
+	padding: 12px 14px;
+}
+
+.uamm-item-visibility-control {
+	background: #f6f1e9;
+	border: 1px solid #e4ddd4;
+	border-radius: 10px;
+	box-sizing: border-box;
+	margin-top: 0;
+	padding: 12px 14px;
+}
+
+.uamm-item-settings-section .uamm-submenu {
+	border-top: 0;
+	margin-top: 0;
+	padding-top: 0;
 }
 
 .uamm-menu-group__details .button-link-delete {
@@ -2100,6 +2214,8 @@ body.uamm-modal-open {
 	.uamm-color-grid,
 	.uamm-group-color-sections,
 	.uamm-group-color-section .uamm-field-grid,
+	.uamm-group-settings-section .uamm-field-grid,
+	.uamm-group-state-options,
 	.uamm-contrast-status {
 		grid-template-columns: 1fr;
 	}
@@ -2177,7 +2293,9 @@ body.uamm-modal-open {
 
 	.uamm-field-grid,
 	.uamm-color-grid,
-	.uamm-group-color-sections {
+	.uamm-group-color-sections,
+	.uamm-group-settings-section .uamm-field-grid,
+	.uamm-group-state-options {
 		grid-template-columns: 1fr;
 	}
 

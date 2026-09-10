@@ -309,6 +309,53 @@
 		return wrapper;
 	}
 
+	function groupSettingsSection( label, description ) {
+		var section = document.createElement( 'fieldset' );
+		var legend = document.createElement( 'legend' );
+		var help = document.createElement( 'p' );
+		var fields = document.createElement( 'div' );
+		section.className = 'uamm-group-settings-section';
+		legend.textContent = label;
+		help.textContent = description;
+		fields.className = 'uamm-field-grid';
+		section.appendChild( legend );
+		section.appendChild( help );
+		section.appendChild( fields );
+		return { section: section, fields: fields };
+	}
+
+	function groupCheckboxInput( label, field, description ) {
+		var wrapper = document.createElement( 'label' );
+		var checkbox = document.createElement( 'input' );
+		var copy = document.createElement( 'span' );
+		var help = document.createElement( 'small' );
+		wrapper.className = 'uamm-check';
+		checkbox.type = 'checkbox';
+		checkbox.setAttribute( 'data-group-field', field );
+		copy.appendChild( document.createTextNode( label ) );
+		help.textContent = description;
+		copy.appendChild( help );
+		wrapper.appendChild( checkbox );
+		wrapper.appendChild( copy );
+		return wrapper;
+	}
+
+	function activateGroupSettingsTab( tab, moveFocus ) {
+		var tablist = tab.closest( '.uamm-group-settings-tabs' );
+		var details = tab.closest( '.uamm-menu-group__details, .uamm-menu-item__details' );
+		if ( ! tablist || ! details ) { return; }
+		tablist.querySelectorAll( '[role="tab"]' ).forEach( function ( candidate ) {
+			var selected = candidate === tab;
+			candidate.classList.toggle( 'is-active', selected );
+			candidate.setAttribute( 'aria-selected', selected ? 'true' : 'false' );
+			candidate.tabIndex = selected ? 0 : -1;
+		} );
+		details.querySelectorAll( ':scope > .uamm-group-settings-panel' ).forEach( function ( panel ) {
+			panel.hidden = panel.id !== tab.getAttribute( 'aria-controls' );
+		} );
+		if ( moveFocus ) { tab.focus(); }
+	}
+
 	function hexRgb( value ) {
 		var hex = String( value || '' ).trim().replace( '#', '' );
 		if ( /^[0-9a-f]{3}$/i.test( hex ) ) { hex = hex.replace( /./g, function ( part ) { return part + part; } ); }
@@ -738,44 +785,89 @@
 		summary.appendChild( count );
 		summary.appendChild( actions );
 		details.className = 'uamm-menu-group__details';
-		fields.className = 'uamm-field-grid';
-		fields.appendChild( input( 'Group label', 'group-label', 'text', strings.newGroup || 'New group' ) );
-		fields.appendChild( dashiconInput( 'Dashicon', 'group-icon', 'dashicons-category' ) );
-		fields.appendChild( groupColorInput( 'Open heading background', 'background', '', groupStyle.background || '#053a8a' ) );
-		fields.appendChild( groupColorInput( 'Open heading text and icon color', 'text_color', '', groupStyle.text_color || '#ffffff' ) );
-		fields.appendChild( groupColorInput( 'Heading border color', 'border_color', '', groupStyle.border_color || '#ffffff' ) );
-		fields.appendChild( groupColorInput( 'Open heading hover background', 'hover_background', '', groupStyle.hover_background || '#014cbc' ) );
-		fields.appendChild( groupColorInput( 'Open heading hover text and icon color', 'hover_text_color', '', groupStyle.hover_text_color || '#ffffff' ) );
-		fields.appendChild( groupColorInput( 'Collapsed heading background', 'collapsed_background', '', groupStyle.collapsed_background || '#0056d6' ) );
-		fields.appendChild( groupColorInput( 'Collapsed heading text and icon color', 'collapsed_text_color', '', groupStyle.collapsed_text_color || '#f0f0f1' ) );
-		fields.appendChild( groupColorInput( 'Collapsed heading hover background', 'collapsed_hover_background', '', groupStyle.collapsed_hover_background || '#2c3338' ) );
-		fields.appendChild( groupColorInput( 'Collapsed heading hover text and icon color', 'collapsed_hover_text_color', '', groupStyle.collapsed_hover_text_color || '#ffffff' ) );
-		fields.appendChild( groupColorInput( 'Item panel background', 'panel_background', '', groupStyle.panel_background || '#474747' ) );
-		fields.appendChild( groupColorInput( 'Item panel text and icon color', 'panel_text_color', '', groupStyle.panel_text_color || '#f0f0f1' ) );
-		fields.appendChild( groupColorInput( 'Item panel border color', 'panel_border_color', '', groupStyle.panel_border_color || '#72aee6' ) );
-		fields.appendChild( groupColorInput( 'Item hover background', 'panel_hover_background', '', groupStyle.panel_hover_background || '#2c3338' ) );
-		fields.appendChild( groupColorInput( 'Item hover text and icon color', 'panel_hover_text_color', '', groupStyle.panel_hover_text_color || '#ffffff' ) );
-		var headingBorderCheck = input( 'Show heading border', 'group-show_heading_border', 'checkbox' );
-		headingBorderCheck.classList.add( 'uamm-check' );
-		fields.appendChild( headingBorderCheck );
-		var panelBorderCheck = input( 'Show item panel border', 'group-show_panel_border', 'checkbox' );
-		panelBorderCheck.classList.add( 'uamm-check' );
-		fields.appendChild( panelBorderCheck );
-		details.appendChild( fields );
+		var tablist = document.createElement( 'div' );
+		var generalTab = document.createElement( 'button' );
+		var appearanceTab = document.createElement( 'button' );
+		var generalPanel = document.createElement( 'div' );
+		var appearancePanel = document.createElement( 'div' );
+		var generalId = 'uamm-group-items-' + id + '-general';
+		var appearanceId = 'uamm-group-items-' + id + '-appearance';
+		tablist.className = 'uamm-group-settings-tabs';
+		tablist.setAttribute( 'role', 'tablist' );
+		tablist.setAttribute( 'aria-label', 'Group settings' );
+		generalTab.id = generalId + '-tab';
+		generalTab.className = 'uamm-group-settings-tab is-active';
+		generalTab.type = 'button';
+		generalTab.setAttribute( 'role', 'tab' );
+		generalTab.setAttribute( 'aria-selected', 'true' );
+		generalTab.setAttribute( 'aria-controls', generalId );
+		generalTab.textContent = 'General';
+		appearanceTab.id = appearanceId + '-tab';
+		appearanceTab.className = 'uamm-group-settings-tab';
+		appearanceTab.type = 'button';
+		appearanceTab.tabIndex = -1;
+		appearanceTab.setAttribute( 'role', 'tab' );
+		appearanceTab.setAttribute( 'aria-selected', 'false' );
+		appearanceTab.setAttribute( 'aria-controls', appearanceId );
+		appearanceTab.textContent = 'Appearance';
+		tablist.appendChild( generalTab );
+		tablist.appendChild( appearanceTab );
+		details.appendChild( tablist );
+		generalPanel.id = generalId;
+		generalPanel.className = 'uamm-group-settings-panel';
+		generalPanel.setAttribute( 'role', 'tabpanel' );
+		generalPanel.setAttribute( 'aria-labelledby', generalTab.id );
+		var detailsSection = groupSettingsSection( 'Group details', 'Set the label and icon shown in the admin menu.' );
+		detailsSection.fields.appendChild( input( 'Group label', 'group-label', 'text', strings.newGroup || 'New group' ) );
+		detailsSection.fields.appendChild( dashiconInput( 'Dashicon', 'group-icon', 'dashicons-category' ) );
+		generalPanel.appendChild( detailsSection.section );
+		var behaviorSection = groupSettingsSection( 'Group behavior', 'Choose the initial state for users who have not set their own preference.' );
+		var check = groupCheckboxInput( 'Start collapsed', 'collapsed', 'Users can still open the group from the admin menu.' );
+		var pinned = groupCheckboxInput( 'Pin this group open by default', 'pinned', 'Users can change the pin from the admin menu.' );
+		behaviorSection.fields.className = 'uamm-group-state-options';
+		behaviorSection.fields.appendChild( check );
+		behaviorSection.fields.appendChild( pinned );
+		generalPanel.appendChild( behaviorSection.section );
+		details.appendChild( generalPanel );
+		appearancePanel.id = appearanceId;
+		appearancePanel.className = 'uamm-group-settings-panel';
+		appearancePanel.hidden = true;
+		appearancePanel.setAttribute( 'role', 'tabpanel' );
+		appearancePanel.setAttribute( 'aria-labelledby', appearanceTab.id );
+		fields.className = 'uamm-group-settings-sections';
+		var openSection = groupSettingsSection( 'Open heading', 'Colors used while the group is expanded.' );
+		openSection.fields.appendChild( groupColorInput( 'Background', 'background', '', groupStyle.background || '#053a8a' ) );
+		openSection.fields.appendChild( groupColorInput( 'Text and icon', 'text_color', '', groupStyle.text_color || '#ffffff' ) );
+		openSection.fields.appendChild( groupColorInput( 'Hover background', 'hover_background', '', groupStyle.hover_background || '#014cbc' ) );
+		openSection.fields.appendChild( groupColorInput( 'Hover text and icon', 'hover_text_color', '', groupStyle.hover_text_color || '#ffffff' ) );
+		openSection.fields.appendChild( groupColorInput( 'Border', 'border_color', '', groupStyle.border_color || '#ffffff' ) );
+		var headingBorderCheck = groupCheckboxInput( 'Show heading border', 'show_heading_border', 'Uses the border color shown beside this option.' );
+		headingBorderCheck.classList.add( 'uamm-group-border-toggle' );
+		openSection.fields.appendChild( headingBorderCheck );
+		fields.appendChild( openSection.section );
+		var collapsedSection = groupSettingsSection( 'Collapsed heading', 'Colors used while the group is closed.' );
+		collapsedSection.fields.appendChild( groupColorInput( 'Background', 'collapsed_background', '', groupStyle.collapsed_background || '#0056d6' ) );
+		collapsedSection.fields.appendChild( groupColorInput( 'Text and icon', 'collapsed_text_color', '', groupStyle.collapsed_text_color || '#f0f0f1' ) );
+		collapsedSection.fields.appendChild( groupColorInput( 'Hover background', 'collapsed_hover_background', '', groupStyle.collapsed_hover_background || '#2c3338' ) );
+		collapsedSection.fields.appendChild( groupColorInput( 'Hover text and icon', 'collapsed_hover_text_color', '', groupStyle.collapsed_hover_text_color || '#ffffff' ) );
+		fields.appendChild( collapsedSection.section );
+		var panelSection = groupSettingsSection( 'Item panel', 'Colors used by top-level menu items inside this group.' );
+		panelSection.fields.appendChild( groupColorInput( 'Background', 'panel_background', '', groupStyle.panel_background || '#474747' ) );
+		panelSection.fields.appendChild( groupColorInput( 'Text and icon', 'panel_text_color', '', groupStyle.panel_text_color || '#f0f0f1' ) );
+		panelSection.fields.appendChild( groupColorInput( 'Hover and active background', 'panel_hover_background', '', groupStyle.panel_hover_background || '#2c3338' ) );
+		panelSection.fields.appendChild( groupColorInput( 'Hover and active text and icon', 'panel_hover_text_color', '', groupStyle.panel_hover_text_color || '#ffffff' ) );
+		panelSection.fields.appendChild( groupColorInput( 'Border', 'panel_border_color', '', groupStyle.panel_border_color || '#72aee6' ) );
+		var panelBorderCheck = groupCheckboxInput( 'Show item panel border', 'show_panel_border', 'Uses the border color shown beside this option.' );
+		panelBorderCheck.classList.add( 'uamm-group-border-toggle' );
+		panelSection.fields.appendChild( panelBorderCheck );
+		fields.appendChild( panelSection.section );
+		appearancePanel.appendChild( fields );
 		var contrast = document.createElement( 'div' );
 		contrast.className = 'uamm-contrast-status';
 		contrast.setAttribute( 'data-group-contrast', '' );
 		contrast.setAttribute( 'aria-live', 'polite' );
-		details.appendChild( contrast );
-		var stateOptions = document.createElement( 'div' );
-		var check = input( 'Start collapsed', 'group-collapsed', 'checkbox' );
-		stateOptions.className = 'uamm-group-state-options';
-		check.classList.add( 'uamm-check' );
-		stateOptions.appendChild( check );
-		var pinned = input( 'Pin this group open by default', 'group-pinned', 'checkbox' );
-		pinned.classList.add( 'uamm-check' );
-		stateOptions.appendChild( pinned );
-		details.appendChild( stateOptions );
+		appearancePanel.appendChild( contrast );
+		details.appendChild( appearancePanel );
 		var remove = removeButton();
 		remove.classList.remove( 'uamm-remove' );
 		remove.classList.add( 'uamm-remove-group' );
@@ -1028,6 +1120,7 @@
 		var iconPickerButton = event.target.closest( '.uamm-open-dashicon-picker' );
 		var iconChoice = event.target.closest( '[data-dashicon]' );
 		var iconPickerClose = event.target.closest( '[data-dashicon-close]' );
+		var groupSettingsTab = event.target.closest( '.uamm-group-settings-tab' );
 		var disclosure = event.target.closest( '.uamm-disclosure' );
 		var groupDisclosure = event.target.closest( '.uamm-group-disclosure' );
 		var groupCollapse = event.target.closest( '.uamm-group-collapse' );
@@ -1044,6 +1137,7 @@
 			return;
 		}
 		if ( iconPickerClose ) { closeDashiconPicker(); return; }
+		if ( groupSettingsTab ) { activateGroupSettingsTab( groupSettingsTab, false ); return; }
 		if ( disclosure ) {
 			var row = disclosure.closest( '.uamm-menu-item' ); var details = row.querySelector( '.uamm-menu-item__details' ); var expanded = disclosure.getAttribute( 'aria-expanded' ) === 'true'; disclosure.setAttribute( 'aria-expanded', expanded ? 'false' : 'true' ); details.hidden = expanded; row.classList.toggle( 'is-open', ! expanded );
 		}
@@ -1053,6 +1147,19 @@
 		if ( moveDown ) { var downRow = moveDown.closest( '.uamm-menu-item, .uamm-menu-group' ); if ( downRow.nextElementSibling ) { downRow.parentNode.insertBefore( downRow.nextElementSibling, downRow ); moveDown.focus(); syncGroupAssignments(); } }
 		if ( remove ) { remove.closest( '.uamm-repeater' ).remove(); refreshGroupSelects(); }
 		if ( removeGroup ) { var removedGroup = removeGroup.closest( '.uamm-menu-group' ); var removedGroupId = removedGroup.getAttribute( 'data-group-id' ); var root = document.getElementById( 'uamm-menu-list' ); removedGroup.querySelectorAll( ':scope > .uamm-group-items > .uamm-menu-item' ).forEach( function ( item ) { root.insertBefore( item, removedGroup ); } ); removedGroup.remove(); if ( removedGroupId ) { delete groupViewState.groups[ removedGroupId ]; saveGroupViewState(); } refreshGroupSelects(); syncGroupAssignments(); updateMenuSaveState(); }
+	} );
+	document.addEventListener( 'keydown', function ( event ) {
+		var tab = event.target.closest( '.uamm-group-settings-tab' );
+		if ( ! tab || ! [ 'ArrowLeft', 'ArrowRight', 'Home', 'End' ].includes( event.key ) ) { return; }
+		var tabs = Array.from( tab.closest( '.uamm-group-settings-tabs' ).querySelectorAll( '[role="tab"]' ) );
+		var index = tabs.indexOf( tab );
+		var targetIndex = index;
+		event.preventDefault();
+		if ( 'ArrowRight' === event.key ) { targetIndex = ( index + 1 ) % tabs.length; }
+		if ( 'ArrowLeft' === event.key ) { targetIndex = ( index - 1 + tabs.length ) % tabs.length; }
+		if ( 'Home' === event.key ) { targetIndex = 0; }
+		if ( 'End' === event.key ) { targetIndex = tabs.length - 1; }
+		activateGroupSettingsTab( tabs[ targetIndex ], true );
 	} );
 
 	document.addEventListener( 'input', function ( event ) {
@@ -1285,6 +1392,8 @@
 			var details = invalidRow.querySelector( invalidRow.classList.contains( 'uamm-menu-group' ) ? '.uamm-menu-group__details' : '.uamm-menu-item__details' );
 			if ( disclosure ) { disclosure.setAttribute( 'aria-expanded', 'true' ); }
 			if ( details ) { details.hidden = false; }
+			var appearanceTab = invalidRow.querySelector( '.uamm-group-settings-tab[aria-controls$="-appearance"]' );
+			if ( appearanceTab ) { activateGroupSettingsTab( appearanceTab, false ); }
 			var invalidInput = invalidRow.querySelector( '[aria-invalid="true"]' );
 			if ( invalidInput ) { invalidInput.focus(); }
 			return;
