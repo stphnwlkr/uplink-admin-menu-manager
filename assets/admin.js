@@ -1053,11 +1053,17 @@
 			};
 			row.querySelectorAll( '[data-submenu-key]' ).forEach( function ( subrow ) {
 				var key = subrow.getAttribute( 'data-submenu-key' );
-				var parts = key.split( '::' );
 				profile.items[ key ] = { title: value( subrow, '[data-subfield="title"]' ), parent: value( subrow, '[data-subfield="parent"]' ), hidden: Boolean( value( subrow, '[data-subfield="hidden"]' ) ) };
-				profile.submenus[ parts[ 0 ] ] = profile.submenus[ parts[ 0 ] ] || [];
-				profile.submenus[ parts[ 0 ] ].push( key );
 			} );
+		} );
+		document.querySelectorAll( '#uamm-menu-list [data-submenu-parent]' ).forEach( function ( list ) {
+			var parent = list.getAttribute( 'data-submenu-parent' );
+			var currentOrder = Array.from( list.querySelectorAll( ':scope > [data-submenu-key]' ) ).map( function ( row ) { return row.getAttribute( 'data-submenu-key' ); } );
+			var originalOrder = [];
+			try { originalOrder = JSON.parse( list.getAttribute( 'data-submenu-original-order' ) || '[]' ); } catch ( error ) { originalOrder = []; }
+			if ( parent && JSON.stringify( currentOrder ) !== JSON.stringify( originalOrder ) ) {
+				profile.submenus[ parent ] = currentOrder;
+			}
 		} );
 		document.querySelectorAll( '#uamm-menu-list > [data-group-id]' ).forEach( function ( row ) {
 			var id = row.getAttribute( 'data-group-id' );
@@ -1174,6 +1180,8 @@
 		var groupCollapse = event.target.closest( '.uamm-group-collapse' );
 		var moveUp = event.target.closest( '.uamm-move-up' );
 		var moveDown = event.target.closest( '.uamm-move-down' );
+		var submenuMoveUp = event.target.closest( '.uamm-submenu-move-up' );
+		var submenuMoveDown = event.target.closest( '.uamm-submenu-move-down' );
 		var remove = event.target.closest( '.uamm-remove' );
 		var removeGroup = event.target.closest( '.uamm-remove-group' );
 		if ( iconPickerButton ) { openDashiconPicker( iconPickerButton ); return; }
@@ -1193,6 +1201,8 @@
 		if ( groupCollapse ) { var collapseRow = groupCollapse.closest( '.uamm-menu-group' ); setGroupCollapsed( collapseRow, groupCollapse.getAttribute( 'aria-expanded' ) === 'true' ); }
 		if ( moveUp ) { var upRow = moveUp.closest( '.uamm-menu-item, .uamm-menu-group' ); if ( upRow.previousElementSibling ) { upRow.parentNode.insertBefore( upRow, upRow.previousElementSibling ); moveUp.focus(); syncGroupAssignments(); } }
 		if ( moveDown ) { var downRow = moveDown.closest( '.uamm-menu-item, .uamm-menu-group' ); if ( downRow.nextElementSibling ) { downRow.parentNode.insertBefore( downRow.nextElementSibling, downRow ); moveDown.focus(); syncGroupAssignments(); } }
+		if ( submenuMoveUp ) { var submenuUpRow = submenuMoveUp.closest( '.uamm-submenu-row' ); if ( submenuUpRow.previousElementSibling ) { submenuUpRow.parentNode.insertBefore( submenuUpRow, submenuUpRow.previousElementSibling ); submenuMoveUp.focus(); updateMenuSaveState(); } }
+		if ( submenuMoveDown ) { var submenuDownRow = submenuMoveDown.closest( '.uamm-submenu-row' ); if ( submenuDownRow.nextElementSibling ) { submenuDownRow.parentNode.insertBefore( submenuDownRow.nextElementSibling, submenuDownRow ); submenuMoveDown.focus(); updateMenuSaveState(); } }
 		if ( remove ) { remove.closest( '.uamm-repeater' ).remove(); refreshGroupSelects(); }
 		if ( removeGroup ) { var removedGroup = removeGroup.closest( '.uamm-menu-group' ); var removedGroupId = removedGroup.getAttribute( 'data-group-id' ); var root = document.getElementById( 'uamm-menu-list' ); removedGroup.querySelectorAll( ':scope > .uamm-group-items > .uamm-menu-item' ).forEach( function ( item ) { root.insertBefore( item, removedGroup ); } ); removedGroup.remove(); if ( removedGroupId ) { delete groupViewState.groups[ removedGroupId ]; saveGroupViewState(); } refreshGroupSelects(); syncGroupAssignments(); updateMenuSaveState(); }
 	} );
@@ -1424,6 +1434,24 @@
 
 		Sortable.create( root, sortableOptions( true ) );
 		savedGroupLists.forEach( function ( list ) { Sortable.create( list, sortableOptions( false ) ); } );
+		root.querySelectorAll( '[data-submenu-parent]' ).forEach( function ( list ) {
+			Sortable.create( list, {
+				animation: 150,
+				direction: 'vertical',
+				draggable: '.uamm-submenu-row',
+				fallbackClass: 'uamm-drag-helper',
+				fallbackOnBody: true,
+				fallbackTolerance: 5,
+				forceFallback: true,
+				ghostClass: 'uamm-drag-placeholder',
+				handle: '.uamm-submenu-drag',
+				scroll: true,
+				scrollSensitivity: 100,
+				scrollSpeed: 12,
+				touchStartThreshold: 4,
+				onEnd: updateMenuSaveState
+			} );
+		} );
 	}
 
 	var menuForm = document.getElementById( 'uamm-menu-form' ); if ( menuForm ) { menuForm.addEventListener( 'submit', function ( event ) {

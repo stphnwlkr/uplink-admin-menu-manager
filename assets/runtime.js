@@ -218,7 +218,15 @@
 					}
 				}
 			} );
-			orderedItems.forEach( function ( item ) { submenu.appendChild( item ); } );
+			var orderedSet = new Set( orderedItems );
+			var available = orderedItems.slice();
+			var currentItems = Array.prototype.filter.call( submenu.querySelectorAll( ':scope > li' ), function ( item ) {
+				return ! item.classList.contains( 'wp-submenu-head' );
+			} );
+			var desiredItems = currentItems.map( function ( item ) {
+				return orderedSet.has( item ) && available.length ? available.shift() : item;
+			} );
+			desiredItems.forEach( function ( item ) { submenu.appendChild( item ); } );
 
 			var parentLink = parentItem.querySelector( ':scope > a.menu-top' );
 			var canonicalChild = Array.prototype.some.call( submenu.querySelectorAll( ':scope > li > a' ), function ( link ) {
@@ -419,8 +427,15 @@
 		applyCustomLinks();
 		applySubmenuIndicators();
 		applyGroups();
+		applySubmenuOrder();
 		applyMenuIconColors();
 		applyTouchSubmenuNavigation();
+		window.requestAnimationFrame( applySubmenuOrder );
+		if ( document.readyState === 'complete' ) {
+			window.setTimeout( applySubmenuOrder, 0 );
+		} else {
+			window.addEventListener( 'load', applySubmenuOrder, { once: true } );
+		}
 	} finally {
 		document.body.classList.remove( 'uamm-menu-pending' );
 	}

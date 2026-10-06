@@ -2002,14 +2002,62 @@ body.uamm-modal-open {
 
 .uamm-submenu-row {
 	align-items: center;
+	background: #fff;
+	border: 1px solid var(--uamm-border);
+	border-radius: 10px;
 	display: grid;
 	gap: 12px;
-	grid-template-columns: minmax(120px, 1fr) minmax(140px, 1fr) minmax(130px, 1fr) auto;
-	padding: 6px 0;
+	grid-template-columns: 32px minmax(120px, 1fr) minmax(140px, 1fr) minmax(130px, 1fr) auto auto;
+	margin-top: 8px;
+	padding: 10px;
 }
 
 .uamm-submenu-row .uamm-check {
 	margin: 0;
+}
+
+.uamm-submenu-drag,
+.uamm-submenu-row__actions button {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	border-radius: 6px;
+	color: #646970;
+	cursor: pointer;
+	display: inline-flex;
+	height: 32px;
+	justify-content: center;
+	padding: 0;
+	width: 32px;
+}
+
+.uamm-submenu-drag {
+	cursor: grab;
+}
+
+.uamm-submenu-drag:active {
+	cursor: grabbing;
+}
+
+.uamm-submenu-drag:hover,
+.uamm-submenu-row__actions button:hover {
+	background: var(--uamm-blue-soft);
+	color: var(--uamm-blue);
+}
+
+.uamm-submenu-drag:focus-visible,
+.uamm-submenu-row__actions button:focus-visible {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--uamm-blue);
+	outline: 0;
+}
+
+.uamm-submenu-row__title {
+	font-weight: 600;
+}
+
+.uamm-submenu-row__actions {
+	display: inline-flex;
+	gap: 2px;
 }
 
 .uamm-repeaters {
@@ -2493,6 +2541,10 @@ body.uamm-modal-open {
 
 	.uamm-submenu-row {
 		grid-template-columns: 1fr;
+	}
+
+	.uamm-submenu-row__actions {
+		justify-self: start;
 	}
 }
 

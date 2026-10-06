@@ -382,7 +382,18 @@ final class Admin_Page {
 					<fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Visibility', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Control whether this item appears in the selected profile.', 'uplink-admin-menu-manager' ); ?></p>
 						<label class="uamm-check uamm-item-visibility-control"><input data-field="hidden" type="checkbox" <?php checked( ! empty( $config['hidden'] ) ); ?> <?php disabled( $is_safety_item ); ?>><span><?php esc_html_e( 'Hide this item for the selected profile', 'uplink-admin-menu-manager' ); ?><?php if ( $is_safety_item ) : ?><small><?php esc_html_e( 'This essential navigation item can be moved into a group, but it cannot be hidden or redirected.', 'uplink-admin-menu-manager' ); ?></small><?php endif; ?></span></label>
 					</fieldset>
-					<?php if ( ! empty( $submenu[ $slug ] ) ) : ?><fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Submenu items', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Rename, move, or hide individual links in this submenu.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-submenu"><?php foreach ( $submenu[ $slug ] as $child ) { self::render_submenu_item( $slug, $child, $profile ); } ?></div></fieldset><?php endif; ?>
+					<?php if ( ! empty( $submenu[ $slug ] ) ) : ?>
+						<?php
+						$original_submenu_order = array_values(
+							array_map(
+								static fn( $child ) => $slug . '::' . (string) ( $child[2] ?? '' ),
+								(array) $submenu[ $slug ]
+							)
+						);
+						$submenu_items = self::order_submenu_items_for_editor( $slug, (array) $submenu[ $slug ], $profile );
+						?>
+						<fieldset class="uamm-group-settings-section uamm-item-settings-section"><legend><?php esc_html_e( 'Submenu items', 'uplink-admin-menu-manager' ); ?></legend><p><?php esc_html_e( 'Reorder, rename, move, or hide individual links in this submenu.', 'uplink-admin-menu-manager' ); ?></p><div class="uamm-submenu" data-submenu-parent="<?php echo esc_attr( $slug ); ?>" data-submenu-original-order="<?php echo esc_attr( wp_json_encode( $original_submenu_order ) ); ?>"><?php foreach ( $submenu_items as $child ) { self::render_submenu_item( $slug, $child, $profile ); } ?></div></fieldset>
+					<?php endif; ?>
 				</div>
 				<div id="<?php echo esc_attr( $item_settings_id ); ?>-appearance" class="uamm-group-settings-panel uamm-item-settings-panel" role="tabpanel" aria-labelledby="<?php echo esc_attr( $item_settings_id ); ?>-appearance-tab" hidden data-item-appearance>
 					<div class="uamm-group-settings-sections">
@@ -440,7 +451,58 @@ final class Admin_Page {
 		$slug   = (string) ( $child[2] ?? '' );
 		$key    = $parent . '::' . $slug;
 		$config = is_array( $profile['items'][ $key ] ?? null ) ? $profile['items'][ $key ] : array();
-		?><div class="uamm-submenu-row" data-submenu-key="<?php echo esc_attr( $key ); ?>"><span><?php echo esc_html( wp_strip_all_tags( (string) ( $child[0] ?? $slug ) ) ); ?></span><input data-subfield="title" type="text" value="<?php echo esc_attr( (string) ( $config['title'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Custom label', 'uplink-admin-menu-manager' ); ?>"><input data-subfield="parent" type="text" value="<?php echo esc_attr( (string) ( $config['parent'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'New parent slug', 'uplink-admin-menu-manager' ); ?>" aria-label="<?php esc_attr_e( 'Move to parent menu slug', 'uplink-admin-menu-manager' ); ?>"><label class="uamm-check"><input data-subfield="hidden" type="checkbox" <?php checked( ! empty( $config['hidden'] ) ); ?>><?php esc_html_e( 'Hidden', 'uplink-admin-menu-manager' ); ?></label></div><?php
+		$title  = wp_strip_all_tags( (string) ( $child[0] ?? $slug ) );
+		/* translators: %s: submenu item label. */
+		$drag_label = sprintf( __( 'Drag %s to reorder', 'uplink-admin-menu-manager' ), $title );
+		/* translators: %s: submenu item label. */
+		$move_up_label = sprintf( __( 'Move %s up', 'uplink-admin-menu-manager' ), $title );
+		/* translators: %s: submenu item label. */
+		$move_down_label = sprintf( __( 'Move %s down', 'uplink-admin-menu-manager' ), $title );
+		?><div class="uamm-submenu-row" data-submenu-key="<?php echo esc_attr( $key ); ?>"><button class="uamm-submenu-drag" type="button" aria-label="<?php echo esc_attr( $drag_label ); ?>"><span class="uamm-control-icon uamm-icon-drag" aria-hidden="true"></span></button><span class="uamm-submenu-row__title"><?php echo esc_html( $title ); ?></span><input data-subfield="title" type="text" value="<?php echo esc_attr( (string) ( $config['title'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'Custom label', 'uplink-admin-menu-manager' ); ?>"><input data-subfield="parent" type="text" value="<?php echo esc_attr( (string) ( $config['parent'] ?? '' ) ); ?>" placeholder="<?php esc_attr_e( 'New parent slug', 'uplink-admin-menu-manager' ); ?>" aria-label="<?php esc_attr_e( 'Move to parent menu slug', 'uplink-admin-menu-manager' ); ?>"><label class="uamm-check"><input data-subfield="hidden" type="checkbox" <?php checked( ! empty( $config['hidden'] ) ); ?>><?php esc_html_e( 'Hidden', 'uplink-admin-menu-manager' ); ?></label><span class="uamm-submenu-row__actions"><button class="uamm-submenu-move-up" type="button" aria-label="<?php echo esc_attr( $move_up_label ); ?>"><span class="uamm-control-icon uamm-icon-move-up" aria-hidden="true"></span></button><button class="uamm-submenu-move-down" type="button" aria-label="<?php echo esc_attr( $move_down_label ); ?>"><span class="uamm-control-icon uamm-icon-move-down" aria-hidden="true"></span></button></span></div><?php
+	}
+
+	/**
+	 * Show a saved submenu order in the editor without losing new plugin entries.
+	 */
+	private static function order_submenu_items_for_editor( string $parent, array $children, array $profile ): array {
+		$saved_order = (array) ( $profile['submenus'][ $parent ] ?? array() );
+		if ( ! $saved_order ) {
+			return $children;
+		}
+
+		$by_key = array();
+		foreach ( $children as $child ) {
+			$key = $parent . '::' . (string) ( $child[2] ?? '' );
+			$by_key[ $key ] = $child;
+		}
+
+		$saved_existing = array();
+		foreach ( $saved_order as $key ) {
+			$key = str_contains( (string) $key, '::' ) ? (string) $key : $parent . '::' . (string) $key;
+			if ( isset( $by_key[ $key ] ) ) {
+				$saved_existing[] = $key;
+			}
+		}
+
+		$native_existing = array_values(
+			array_filter(
+				array_keys( $by_key ),
+				static fn( $key ) => in_array( $key, $saved_existing, true )
+			)
+		);
+		if ( $saved_existing === $native_existing ) {
+			return $children;
+		}
+
+		$available = array_map( static fn( $key ) => $by_key[ $key ], $saved_existing );
+		foreach ( $children as $index => $child ) {
+			$key = $parent . '::' . (string) ( $child[2] ?? '' );
+			if ( in_array( $key, $saved_existing, true ) && $available ) {
+				$children[ $index ] = array_shift( $available );
+			}
+		}
+
+		return $children;
 	}
 
 	private static function render_group_row( array $group, array $members, array $submenu, array $profile ): void {

@@ -1,5 +1,11 @@
 # Uplink Admin Menu Manager changelog
 
+## 1.0.4
+
+- Added drag-and-drop and keyboard controls for reordering WordPress and plugin submenu items.
+- Preserved the native submenu order unless an administrator explicitly changes it.
+- Kept newly registered submenu items in their native positions and reapplied custom orders after late menu changes.
+
 ## 1.0.3
 
 - Reorganized site-wide Appearance settings into Layout, Group headings, Menu colors, and Group colors tabs.

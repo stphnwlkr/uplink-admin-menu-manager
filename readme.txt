@@ -4,7 +4,7 @@ Tags: admin menu, accessibility, menu groups, menu editor, dashboard
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,11 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 
 == Changelog ==
 
+= 1.0.4 =
+* Added drag-and-drop and keyboard controls for reordering WordPress and plugin submenu items.
+* Preserved the native submenu order unless an administrator explicitly changes it.
+* Kept newly registered submenu items in their native positions and reapplied custom orders after late menu changes.
+
 = 1.0.3 =
 * Reorganized site-wide Appearance settings into Layout, Group headings, Menu colors, and Group colors tabs.
 * Split main-menu and plugin-flyout colors into clearly labeled groups without changing saved values or defaults.
@@ -146,6 +151,10 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 * Add complete and look-and-feel-only JSON transfer.
 
 == Upgrade Notice ==
+
+= 1.0.4 =
+
+Adds reliable, accessible submenu reordering without changing untouched WordPress or plugin menus.
 
 = 1.0.3 =
 

@@ -3,7 +3,7 @@
  * Plugin Name:       Uplink Admin Menu Manager
  * Plugin URI:        https://uplinkplugins.com/articles/introducing-uplink-admin-menu-manager/
  * Description:       Organize WordPress admin menus with role-aware profiles and accessible collapsible groups.
- * Version:           1.0.3
+ * Version:           1.0.4
  * Requires at least: 7.0
  * Requires PHP:      8.1
  * Author:            Stephen Walker
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'UAMM_VERSION', '1.0.3' );
+define( 'UAMM_VERSION', '1.0.4' );
 define( 'UAMM_FILE', __FILE__ );
 define( 'UAMM_PATH', plugin_dir_path( __FILE__ ) );
 define( 'UAMM_URL', plugin_dir_url( __FILE__ ) );

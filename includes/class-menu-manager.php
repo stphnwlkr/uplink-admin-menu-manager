@@ -17,6 +17,7 @@ final class Menu_Manager {
 
 	public static function init(): void {
 		add_action( 'admin_menu', array( __CLASS__, 'apply_profile' ), PHP_INT_MAX - 20 );
+		add_action( 'admin_menu', array( __CLASS__, 'finalize_submenu_order' ), PHP_INT_MAX );
 		add_filter( 'custom_menu_order', array( __CLASS__, 'enable_custom_order' ) );
 		add_filter( 'menu_order', array( __CLASS__, 'apply_order' ), PHP_INT_MAX );
 		add_filter( 'admin_body_class', array( __CLASS__, 'add_admin_body_class' ) );
@@ -206,28 +207,95 @@ final class Menu_Manager {
 			$submenu[ $target ][] = $pool[ $key ];
 		}
 
+
+		self::order_submenu_items( $profile, $submenu );
+	}
+
+	/**
+	 * Reapply submenu ordering after every plugin has finished changing menus.
+	 */
+	public static function finalize_submenu_order(): void {
+		global $submenu;
+
+		if ( ! is_array( $submenu ) || ! Settings::user_uses_managed_menu() ) {
+			return;
+		}
+
+		$profile = self::$active_profile ?: Settings::get_active_profile();
+		self::order_submenu_items( $profile, $submenu );
+	}
+
+	/**
+	 * Apply explicit submenu orders while preserving new, unsaved child links.
+	 */
+	private static function order_submenu_items( array $profile, array &$submenu ): void {
 		foreach ( (array) $profile['submenus'] as $parent => $ordered_keys ) {
-			$ordered = array();
+			$ordered_slugs = array();
 			foreach ( (array) $ordered_keys as $key ) {
-				$lookup = str_contains( $key, '::' ) ? $key : $parent . '::' . $key;
+				$lookup = str_contains( (string) $key, '::' ) ? (string) $key : $parent . '::' . (string) $key;
 				if ( ! empty( $profile['items'][ $lookup ]['parent'] ) && (string) $profile['items'][ $lookup ]['parent'] !== (string) $parent ) {
 					continue;
 				}
-				if ( isset( $pool[ $lookup ] ) ) {
-					$ordered[] = $pool[ $lookup ];
+				$parts = explode( '::', $lookup, 2 );
+				if ( ! empty( $parts[1] ) && ! in_array( $parts[1], $ordered_slugs, true ) ) {
+					$ordered_slugs[] = $parts[1];
 				}
 			}
-			if ( $ordered ) {
-				$current   = (array) ( $submenu[ $parent ] ?? array() );
-				$available = array_values( array_filter( $ordered, static fn( $child ) => in_array( $child, $current, true ) ) );
-				foreach ( $current as $index => $child ) {
-					if ( in_array( $child, $ordered, true ) && $available ) {
-						$current[ $index ] = array_shift( $available );
-					}
+			if ( ! $ordered_slugs ) {
+				continue;
+			}
+
+			$actual_parent = self::resolve_submenu_parent( (string) $parent, $ordered_slugs, $submenu );
+			if ( '' === $actual_parent ) {
+				continue;
+			}
+
+			$current   = (array) $submenu[ $actual_parent ];
+			$by_slug   = array();
+			foreach ( $current as $child ) {
+				$slug = (string) ( $child[2] ?? '' );
+				if ( '' !== $slug ) {
+					$by_slug[ $slug ] = $child;
 				}
-				$submenu[ $parent ] = $current;
+			}
+			$available = array();
+			foreach ( $ordered_slugs as $slug ) {
+				if ( isset( $by_slug[ $slug ] ) ) {
+					$available[] = $by_slug[ $slug ];
+				}
+			}
+			foreach ( $current as $index => $child ) {
+				if ( in_array( (string) ( $child[2] ?? '' ), $ordered_slugs, true ) && $available ) {
+					$current[ $index ] = array_shift( $available );
+				}
+			}
+			$submenu[ $actual_parent ] = $current;
+		}
+	}
+
+	/**
+	 * Find a submenu whose parent slug was replaced by WordPress or a plugin.
+	 */
+	private static function resolve_submenu_parent( string $parent, array $ordered_slugs, array $submenu ): string {
+		if ( isset( $submenu[ $parent ] ) ) {
+			$parent_slugs = array_map( static fn( $child ) => (string) ( $child[2] ?? '' ), (array) $submenu[ $parent ] );
+			if ( array_intersect( $ordered_slugs, $parent_slugs ) ) {
+				return $parent;
 			}
 		}
+
+		$best_parent = '';
+		$best_score  = 0;
+		foreach ( $submenu as $candidate => $children ) {
+			$child_slugs = array_map( static fn( $child ) => (string) ( $child[2] ?? '' ), (array) $children );
+			$score       = count( array_intersect( $ordered_slugs, $child_slugs ) );
+			if ( $score > $best_score ) {
+				$best_parent = (string) $candidate;
+				$best_score  = $score;
+			}
+		}
+
+		return $best_score > 0 ? $best_parent : '';
 	}
 
 	public static function enable_custom_order( bool $enabled ): bool {
