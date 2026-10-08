@@ -210,6 +210,7 @@ final class Admin_Page {
 		$profile_locked = Settings::is_profile_write_protected( $profile_key );
 		$menu        = self::$menu_snapshot['menu'] ?? array();
 		$submenu     = self::$menu_snapshot['submenu'] ?? array();
+		self::add_custom_items_to_editor_menu( $profile, $menu, $submenu );
 		?>
 		<div class="uamm-layout">
 			<main class="uamm-main">
@@ -246,6 +247,42 @@ final class Admin_Page {
 			</aside>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Add saved custom items to the clean menu snapshot used by the editor.
+	 *
+	 * The snapshot is captured before profile changes are applied so hidden and
+	 * reordered native items remain editable. Custom items do not exist at that
+	 * point, so they must be added separately for ordering and group assignment.
+	 */
+	private static function add_custom_items_to_editor_menu( array $profile, array &$menu, array &$submenu ): void {
+		foreach ( (array) ( $profile['custom_items'] ?? array() ) as $custom ) {
+			if ( ! is_array( $custom ) ) {
+				continue;
+			}
+
+			$id         = sanitize_key( (string) ( $custom['id'] ?? '' ) );
+			$title      = (string) ( $custom['title'] ?? '' );
+			$capability = (string) ( $custom['capability'] ?? 'read' );
+			$capability = '' !== $capability ? $capability : 'read';
+			$slug       = 'uamm-custom-' . $id;
+			$parent     = (string) ( $custom['parent'] ?? '' );
+			$icon       = (string) ( $custom['icon'] ?? 'dashicons-admin-generic' );
+			$mode       = (string) ( $custom['open_mode'] ?? 'same' );
+
+			if ( '' === $id || '' === $title || ! current_user_can( $capability ) ) {
+				continue;
+			}
+
+			if ( 'iframe' !== $mode && '' !== $parent ) {
+				$submenu[ $parent ]   = is_array( $submenu[ $parent ] ?? null ) ? $submenu[ $parent ] : array();
+				$submenu[ $parent ][] = array( $title, $capability, $slug );
+				continue;
+			}
+
+			$menu[] = array( $title, $capability, $slug, '', 'menu-top uamm-custom-item', $slug, $icon );
+		}
 	}
 
 	/**
