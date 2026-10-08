@@ -4,11 +4,75 @@
 	var strings = ( window.uammAdmin || {} ).i18n || {};
 	var groupStyle = ( window.uammAdmin || {} ).groupStyle || {};
 	var parentMenus = ( window.uammAdmin || {} ).parentMenus || [];
-	var capabilityChoices = ( window.uammAdmin || {} ).capabilities || [];
+	var roleChoices = ( window.uammAdmin || {} ).roles || [];
 	var adminMenuFallbacks = {};
 	var groupViewState = { alwaysCollapsed: false, groups: {} };
-	var appearanceFormDirty = false;
+	var initialSettingsState = '';
+	var settingsSubmissionInProgress = false;
 	var activeAdminTab = new URL( window.location.href ).searchParams.get( 'tab' ) || 'menus';
+
+	function settingsControlState( control, index ) {
+		var state = {
+			disabled: Boolean( control.disabled ),
+			index: index,
+			name: control.name || control.getAttribute( 'data-custom-field' ) || control.getAttribute( 'data-group-field' ) || control.getAttribute( 'data-field' ) || control.getAttribute( 'data-subfield' ) || control.getAttribute( 'data-profile-field' ) || control.getAttribute( 'data-uamm-range' ) || control.getAttribute( 'data-uamm-number' ) || '',
+			type: control.type || control.tagName.toLowerCase()
+		};
+		if ( 'checkbox' === control.type || 'radio' === control.type ) {
+			state.checked = control.checked;
+		} else if ( 'file' === control.type ) {
+			state.files = Array.from( control.files || [] ).map( function ( file ) { return [ file.name, file.size, file.lastModified ]; } );
+		} else {
+			state.value = control.value;
+		}
+		return state;
+	}
+
+	function captureSettingsState() {
+		var selector = [
+			'#uamm-menu-form [data-profile-field]',
+			'#uamm-menu-form [data-field]',
+			'#uamm-menu-form [data-subfield]',
+			'#uamm-menu-form [data-group-field]',
+			'#uamm-custom-list [data-custom-field]',
+			'#uamm-custom-list [data-custom-role]',
+			'[data-global-group-style-form] input:not([type="hidden"]):not([type="submit"]):not([type="button"])',
+			'[data-global-group-style-form] select',
+			'[data-global-group-style-form] textarea',
+			'#uamm-access-form input:not([type="hidden"]):not([type="submit"]):not([type="button"])',
+			'#uamm-access-form select',
+			'#uamm-access-form textarea',
+			'[data-uamm-import-form] input[type="file"]'
+		].join( ',' );
+		var controls = Array.from( document.querySelectorAll( selector ) ).map( settingsControlState );
+		var structure = Array.from( document.querySelectorAll( '#uamm-menu-list [data-group-id], #uamm-menu-list [data-slug], #uamm-menu-list [data-submenu-key], #uamm-custom-list [data-custom-id]' ) ).map( function ( node ) {
+			var group = node.closest( '[data-group-id]' );
+			var item = node.closest( '[data-slug]' );
+			return {
+				id: node.getAttribute( 'data-group-id' ) || node.getAttribute( 'data-slug' ) || node.getAttribute( 'data-submenu-key' ) || node.getAttribute( 'data-custom-id' ) || '',
+				group: group && group !== node ? group.getAttribute( 'data-group-id' ) : '',
+				item: item && item !== node ? item.getAttribute( 'data-slug' ) : ''
+			};
+		} );
+		return JSON.stringify( { controls: controls, structure: structure } );
+	}
+
+	function hasUnsavedSettings() {
+		return Boolean( initialSettingsState && captureSettingsState() !== initialSettingsState );
+	}
+
+	function initializeUnsavedChangesWarning() {
+		initialSettingsState = captureSettingsState();
+		window.addEventListener( 'beforeunload', function ( event ) {
+			if ( settingsSubmissionInProgress || ! hasUnsavedSettings() ) { return; }
+			event.preventDefault();
+			event.returnValue = '';
+		} );
+		document.addEventListener( 'submit', function ( event ) {
+			if ( event.defaultPrevented || ! event.target.matches( '#uamm-menu-form, [data-global-group-style-form], #uamm-access-form, [data-uamm-import-form], [data-uamm-reset], [data-uamm-clear]' ) ) { return; }
+			settingsSubmissionInProgress = true;
+		} );
+	}
 
 	function initializeAdminTabs() {
 		var tabs = Array.from( document.querySelectorAll( '[data-uamm-tab]' ) );
@@ -23,7 +87,12 @@
 			var nextTab = tabs.find( function ( item ) { return item.getAttribute( 'data-uamm-tab' ) === key; } );
 			var nextPanel = panels.find( function ( item ) { return item.getAttribute( 'data-uamm-panel' ) === key; } );
 			if ( ! nextTab || ! nextPanel ) { return false; }
-			if ( appearanceFormDirty && 'appearance' === activeAdminTab && 'appearance' !== key && ! window.confirm( strings.unsavedAppearance || 'You have unsaved Appearance changes. Leave this section and discard the preview?' ) ) { return false; }
+			if ( key !== activeAdminTab && hasUnsavedSettings() ) {
+				if ( ! window.confirm( strings.unsavedChanges || 'You have unsaved changes. Leave without saving?' ) ) { return false; }
+				settingsSubmissionInProgress = true;
+				window.location.assign( nextTab.href );
+				return false;
+			}
 			tabs.forEach( function ( item ) {
 				var selected = item === nextTab;
 				item.classList.toggle( 'is-active', selected );
@@ -196,20 +265,96 @@
 		return wrapper;
 	}
 
-	function customCapabilitySelect() {
-		var wrapper = document.createElement( 'label' );
-		var select = document.createElement( 'select' );
-		wrapper.appendChild( document.createTextNode( strings.requiredCapability || 'Required capability' ) );
-		select.setAttribute( 'data-custom-field', 'capability' );
-		capabilityChoices.forEach( function ( capability ) {
-			var option = document.createElement( 'option' );
-			option.value = capability.value;
-			option.textContent = capability.label;
-			option.selected = 'read' === capability.value;
-			select.appendChild( option );
+	function customRolePicker( selectedRoles ) {
+		var wrapper = document.createElement( 'div' );
+		var label = document.createElement( 'span' );
+		var details = document.createElement( 'details' );
+		var summary = document.createElement( 'summary' );
+		var summaryText = document.createElement( 'span' );
+		var options = document.createElement( 'div' );
+		var help = document.createElement( 'small' );
+		var defaultRole = roleChoices.some( function ( role ) { return 'administrator' === role.value; } ) ? 'administrator' : roleChoices.length ? roleChoices[ 0 ].value : '';
+		selectedRoles = Array.isArray( selectedRoles ) && selectedRoles.length ? selectedRoles : [ defaultRole ];
+		wrapper.className = 'uamm-role-field';
+		label.className = 'uamm-role-field__label';
+		label.textContent = strings.visibleToRoles || 'Visible to roles';
+		details.className = 'uamm-role-picker';
+		summaryText.setAttribute( 'data-role-summary', '' );
+		summary.appendChild( summaryText );
+		options.className = 'uamm-role-picker__options';
+		options.appendChild( customRoleOption( '*', strings.allRoles || 'All roles', selectedRoles.includes( '*' ) ) );
+		roleChoices.forEach( function ( role ) {
+			options.appendChild( customRoleOption( role.value, role.label, ! selectedRoles.includes( '*' ) && selectedRoles.includes( role.value ) ) );
 		} );
-		wrapper.appendChild( select );
+		help.textContent = strings.roleSelectionHelp || 'Choose one or more roles. Select All roles to show the item to everyone.';
+		details.appendChild( summary );
+		details.appendChild( options );
+		wrapper.appendChild( label );
+		wrapper.appendChild( details );
+		wrapper.appendChild( help );
+		initializeCustomRolePicker( details );
 		return wrapper;
+	}
+
+	function upgradeCustomRoleSelect( select ) {
+		var oldWrapper = select.closest( 'label' );
+		if ( ! oldWrapper ) { return; }
+		var selected = Array.from( select.selectedOptions ).map( function ( option ) { return option.value; } );
+		oldWrapper.replaceWith( customRolePicker( selected ) );
+	}
+
+	function customRoleOption( value, label, checked ) {
+		var option = document.createElement( 'label' );
+		var input = document.createElement( 'input' );
+		var text = document.createElement( 'span' );
+		option.className = 'uamm-role-picker__option';
+		input.type = 'checkbox';
+		input.value = value;
+		input.checked = checked;
+		input.setAttribute( 'data-custom-role', '' );
+		input.setAttribute( 'aria-label', label );
+		text.textContent = label;
+		option.appendChild( input );
+		option.appendChild( text );
+		return option;
+	}
+
+	function selectedRoleValues( row ) {
+		return Array.from( row.querySelectorAll( '[data-custom-role]:checked' ) ).map( function ( input ) { return input.value; } );
+	}
+
+	function updateCustomRoleSummary( picker ) {
+		var checked = Array.from( picker.querySelectorAll( '[data-custom-role]:checked' ) );
+		var summary = picker.querySelector( '[data-role-summary]' );
+		if ( ! summary ) { return; }
+		if ( checked.some( function ( input ) { return '*' === input.value; } ) ) {
+			summary.textContent = strings.allRoles || 'All roles';
+		} else if ( 1 === checked.length ) {
+			summary.textContent = checked[ 0 ].nextElementSibling.textContent;
+		} else {
+			summary.textContent = ( strings.multipleRoles || '%d roles' ).replace( '%d', checked.length );
+		}
+	}
+
+	function initializeCustomRolePicker( picker ) {
+		var checked = picker.querySelectorAll( '[data-custom-role]:checked' );
+		if ( ! checked.length ) {
+			var fallback = picker.querySelector( '[data-custom-role][value="administrator"]' ) || picker.querySelector( '[data-custom-role]:not([value="*"])' ) || picker.querySelector( '[data-custom-role][value="*"]' );
+			if ( fallback ) { fallback.checked = true; }
+		}
+		updateCustomRoleSummary( picker );
+	}
+
+	function normalizeCustomRolePicker( input ) {
+		var picker = input.closest( '.uamm-role-picker' );
+		if ( ! picker ) { return; }
+		if ( input.checked && '*' === input.value ) {
+			picker.querySelectorAll( '[data-custom-role]:not([value="*"])' ).forEach( function ( role ) { role.checked = false; } );
+		} else if ( input.checked ) {
+			var all = picker.querySelector( '[data-custom-role][value="*"]' );
+			if ( all ) { all.checked = false; }
+		}
+		initializeCustomRolePicker( picker );
 	}
 
 	var dashiconPicker = null;
@@ -615,14 +760,8 @@
 		[ 'input', 'change' ].forEach( function ( eventName ) {
 			form.addEventListener( eventName, function ( event ) {
 				if ( ! event.target.matches( 'input, select' ) || 'hidden' === event.target.type ) { return; }
-				appearanceFormDirty = true;
 				previewAppearance( form );
 			} );
-		} );
-		window.addEventListener( 'beforeunload', function ( event ) {
-			if ( ! appearanceFormDirty ) { return; }
-			event.preventDefault();
-			event.returnValue = '';
 		} );
 	}
 
@@ -980,8 +1119,6 @@
 		row.appendChild( input( 'Label', 'custom-title', 'text', strings.newItem || 'New menu item' ) );
 		row.appendChild( input( 'URL', 'custom-url', 'url', '' ) );
 		row.appendChild( customParentSelect() );
-		row.appendChild( customCapabilitySelect() );
-		row.appendChild( dashiconInput( 'Dashicon', 'custom-icon', 'dashicons-admin-links' ) );
 		var mode = document.createElement( 'label' );
 		var select = document.createElement( 'select' );
 		mode.appendChild( document.createTextNode( 'Open in' ) );
@@ -991,9 +1128,67 @@
 		} );
 		mode.appendChild( select );
 		row.appendChild( mode );
+		row.appendChild( customRolePicker() );
+		row.appendChild( dashiconInput( 'Dashicon', 'custom-icon', 'dashicons-admin-links' ) );
 		row.appendChild( removeButton() );
 		list.appendChild( row );
+		initializeCustomEditor( row, true );
 		updateCustomItemsDirtyState();
+		row.querySelector( '[data-custom-field="title"]' ).focus();
+	}
+
+	function initializeCustomEditor( row, open ) {
+		if ( ! row || row.classList.contains( 'uamm-custom-editor' ) ) { return; }
+		var children = Array.from( row.children );
+		var summary = document.createElement( 'button' );
+		var icon = document.createElement( 'span' );
+		var summaryCopy = document.createElement( 'span' );
+		var summaryTitle = document.createElement( 'strong' );
+		var summaryMeta = document.createElement( 'small' );
+		var body = document.createElement( 'div' );
+		row.classList.add( 'uamm-custom-editor' );
+		summary.type = 'button';
+		summary.className = 'uamm-custom-editor__summary';
+		summary.setAttribute( 'aria-expanded', open ? 'true' : 'false' );
+		icon.className = 'uamm-custom-editor__icon dashicons dashicons-admin-links';
+		icon.setAttribute( 'aria-hidden', 'true' );
+		summaryCopy.className = 'uamm-custom-editor__summary-copy';
+		summaryTitle.setAttribute( 'data-custom-summary-title', '' );
+		summaryMeta.setAttribute( 'data-custom-summary-meta', '' );
+		summaryCopy.appendChild( summaryTitle );
+		summaryCopy.appendChild( summaryMeta );
+		summary.appendChild( icon );
+		summary.appendChild( summaryCopy );
+		body.className = 'uamm-custom-editor__body';
+		body.hidden = ! open;
+		children.forEach( function ( child ) { body.appendChild( child ); } );
+		row.appendChild( summary );
+		row.appendChild( body );
+		summary.addEventListener( 'click', function () {
+			var expanded = 'true' === summary.getAttribute( 'aria-expanded' );
+			summary.setAttribute( 'aria-expanded', expanded ? 'false' : 'true' );
+			body.hidden = expanded;
+		} );
+		updateCustomItemSummary( row );
+	}
+
+	function updateCustomItemSummary( row ) {
+		if ( ! row ) { return; }
+		var title = row.querySelector( '[data-custom-field="title"]' );
+		var parent = row.querySelector( '[data-custom-field="parent"]' );
+		var iconField = row.querySelector( '[data-custom-field="icon"]' );
+		var summaryTitle = row.querySelector( '[data-custom-summary-title]' );
+		var summaryMeta = row.querySelector( '[data-custom-summary-meta]' );
+		var summaryIcon = row.querySelector( '.uamm-custom-editor__icon' );
+		var roleSummary = row.querySelector( '[data-role-summary]' );
+		if ( summaryTitle ) { summaryTitle.textContent = title && title.value.trim() ? title.value.trim() : strings.newItem || 'New menu item'; }
+		if ( summaryMeta ) {
+			var placement = parent && parent.selectedIndex >= 0 ? parent.options[ parent.selectedIndex ].textContent : strings.topLevel || 'Top level';
+			summaryMeta.textContent = [ placement, roleSummary ? roleSummary.textContent : '' ].filter( Boolean ).join( ' · ' );
+		}
+		if ( summaryIcon && iconField ) {
+			summaryIcon.className = 'uamm-custom-editor__icon dashicons ' + ( /^dashicons-[a-z0-9-]+$/i.test( iconField.value.trim() ) ? iconField.value.trim() : 'dashicons-admin-links' );
+		}
 	}
 
 	function customItemsState() {
@@ -1002,11 +1197,12 @@
 			row.querySelectorAll( '[data-custom-field]' ).forEach( function ( field ) {
 				fields[ field.getAttribute( 'data-custom-field' ) ] = 'checkbox' === field.type ? field.checked : field.value;
 			} );
+			fields.roles = selectedRoleValues( row );
 			return { id: row.getAttribute( 'data-custom-id' ), fields: fields };
 		} );
 	}
 
-	var initialCustomItemsState = JSON.stringify( customItemsState() );
+	var initialCustomItemsState = '';
 
 	function updateCustomItemsDirtyState() {
 		var output = document.getElementById( 'uamm-custom-unsaved-state' );
@@ -1131,7 +1327,10 @@
 		} );
 		document.querySelectorAll( '[data-custom-id]' ).forEach( function ( row ) {
 			var custom = { id: row.getAttribute( 'data-custom-id' ) };
-			row.querySelectorAll( '[data-custom-field]' ).forEach( function ( field ) { custom[ field.getAttribute( 'data-custom-field' ) ] = field.type === 'checkbox' ? field.checked : field.value.trim(); } );
+			row.querySelectorAll( '[data-custom-field]' ).forEach( function ( field ) {
+				custom[ field.getAttribute( 'data-custom-field' ) ] = field.type === 'checkbox' ? field.checked : field.value.trim();
+			} );
+			custom.roles = selectedRoleValues( row );
 			if ( custom.title ) { profile.custom_items.push( custom ); }
 		} );
 		document.getElementById( 'uamm-profile-json' ).value = JSON.stringify( profile );
@@ -1279,10 +1478,17 @@
 	document.addEventListener( 'input', function ( event ) {
 		if ( dashiconPicker && event.target.matches( '#uamm-dashicon-search' ) ) { renderDashiconChoices( event.target.value ); }
 		if ( event.target.matches( '.uamm-icon-field input[type="text"]' ) ) { updateIconPreview( event.target, event.target.value.trim() ); }
-		if ( event.target.matches( '#uamm-custom-list [data-custom-field]' ) ) { updateCustomItemsDirtyState(); }
+		if ( event.target.matches( '#uamm-custom-list [data-custom-field], #uamm-custom-list [data-custom-role]' ) ) {
+			updateCustomItemSummary( event.target.closest( '[data-custom-id]' ) );
+			updateCustomItemsDirtyState();
+		}
 	} );
 	document.addEventListener( 'change', function ( event ) {
-		if ( event.target.matches( '#uamm-custom-list [data-custom-field]' ) ) { updateCustomItemsDirtyState(); }
+		if ( event.target.matches( '#uamm-custom-list [data-custom-role]' ) ) { normalizeCustomRolePicker( event.target ); }
+		if ( event.target.matches( '#uamm-custom-list [data-custom-field], #uamm-custom-list [data-custom-role]' ) ) {
+			updateCustomItemSummary( event.target.closest( '[data-custom-id]' ) );
+			updateCustomItemsDirtyState();
+		}
 	} );
 	document.addEventListener( 'keydown', function ( event ) {
 		if ( ! dashiconPicker || dashiconPicker.hidden ) { return; }
@@ -1591,7 +1797,6 @@
 	document.querySelectorAll( '[data-uamm-reset]' ).forEach( function ( form ) { form.addEventListener( 'submit', function ( event ) {
 		var message = form.matches( '[data-uamm-appearance-reset]' ) ? strings.confirmAppearanceReset || 'Reset all Appearance settings to the plugin defaults?' : strings.confirmReset || 'Delete this profile?';
 		if ( ! window.confirm( message ) ) { event.preventDefault(); return; }
-		if ( form.matches( '[data-uamm-appearance-reset]' ) ) { appearanceFormDirty = false; }
 	} ); } );
 	var globalGroupStyleForm = document.querySelector( '[data-global-group-style-form]' ); if ( globalGroupStyleForm ) { globalGroupStyleForm.addEventListener( 'submit', function ( event ) {
 		var style = globalGroupStyleForm.querySelector( '[data-global-group-style]' );
@@ -1610,7 +1815,6 @@
 			return;
 		}
 		if ( summary ) { summary.hidden = true; summary.textContent = ''; }
-		appearanceFormDirty = false;
 	} ); }
 	document.querySelectorAll( '[data-uamm-clear]' ).forEach( function ( form ) { form.addEventListener( 'submit', function ( event ) { if ( ! window.confirm( strings.confirmClear || 'Clear every saved Menu Manager setting?' ) ) { event.preventDefault(); } } ); } );
 	document.querySelectorAll( '.uamm-color-grid label' ).forEach( function ( label ) { var picker = label.querySelector( 'input[type="color"]' ); var text = label.querySelector( 'input[type="text"]' ); if ( picker && text ) { picker.addEventListener( 'input', function () { text.value = picker.value; updateGlobalSaveState(); } ); text.addEventListener( 'input', function () { if ( /^#[0-9a-f]{6}$/i.test( text.value ) ) { picker.value = text.value; updateColorSwatch( picker ); } else if ( ! text.value.trim() && text.placeholder ) { picker.value = text.placeholder; updateColorSwatch( picker ); } updateGlobalSaveState(); } ); } } );
@@ -1642,6 +1846,10 @@
 	initializeAppearancePreview();
 	initializeGroupView();
 	initializeMenuSortables();
+	document.querySelectorAll( '#uamm-custom-list [data-custom-field="roles"]' ).forEach( upgradeCustomRoleSelect );
+	document.querySelectorAll( '#uamm-custom-list .uamm-role-picker' ).forEach( initializeCustomRolePicker );
+	document.querySelectorAll( '#uamm-custom-list [data-custom-id]' ).forEach( function ( row ) { initializeCustomEditor( row, false ); } );
+	initialCustomItemsState = JSON.stringify( customItemsState() );
 	document.querySelectorAll( '#uamm-menu-list [data-group-field="pinned"]' ).forEach( function ( pinned ) {
 		var row = pinned.closest( '.uamm-menu-group' );
 		var collapsed = row ? row.querySelector( '[data-group-field="collapsed"]' ) : null;
@@ -1654,4 +1862,5 @@
 	updateMenuSaveState();
 	updateGlobalSaveState();
 	syncGroupAssignments();
+	initializeUnsavedChangesWarning();
 }() );

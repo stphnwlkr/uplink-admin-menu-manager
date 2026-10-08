@@ -597,7 +597,7 @@ final class Settings {
 		return array(
 			'title'       => sanitize_text_field( (string) ( $item['title'] ?? '' ) ),
 			'url'         => esc_url_raw( (string) ( $item['url'] ?? '' ), array( 'http', 'https' ) ),
-			'capability'  => sanitize_key( (string) ( $item['capability'] ?? '' ) ),
+			'roles'       => self::sanitize_role_list( $item['roles'] ?? array( 'administrator' ) ),
 			'icon'        => self::sanitize_icon( (string) ( $item['icon'] ?? '' ) ),
 			'css_class'   => implode( ' ', array_filter( array_map( 'sanitize_html_class', preg_split( '/\s+/', (string) ( $item['css_class'] ?? '' ) ) ?: array() ) ) ),
 			'hidden'      => ! empty( $item['hidden'] ),
@@ -708,6 +708,25 @@ final class Settings {
 		}
 
 		return $clean;
+	}
+
+	/**
+	 * Sanitize the roles allowed to see a custom menu item.
+	 *
+	 * An asterisk intentionally makes the item visible to every role. Items
+	 * without a valid saved role default to administrators.
+	 */
+	private static function sanitize_role_list( $roles ): array {
+		$roles = (array) $roles;
+		if ( in_array( '*', $roles, true ) ) {
+			return array( '*' );
+		}
+
+		$registered = array_keys( wp_roles()->roles );
+		$clean      = array_values( array_unique( array_filter( array_map( 'sanitize_key', $roles ) ) ) );
+		$clean      = array_values( array_intersect( $clean, $registered ) );
+
+		return $clean ?: array( 'administrator' );
 	}
 
 	private static function sanitize_appearance( $input ): array {

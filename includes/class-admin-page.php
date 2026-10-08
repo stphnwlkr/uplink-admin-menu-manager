@@ -76,7 +76,7 @@ final class Admin_Page {
 			'uamm-admin',
 			'window.uammAdmin = ' . wp_json_encode(
 				array(
-					'capabilities' => self::capability_choices(),
+					'roles'        => self::role_choices(),
 					'groupStyle'   => (array) Settings::get_all()['group_style'],
 					'parentMenus'  => self::parent_menu_choices( $profile ),
 					'profileKey'   => self::selected_profile_key(),
@@ -86,7 +86,11 @@ final class Admin_Page {
 						'newGroup'     => __( 'New group', 'uplink-admin-menu-manager' ),
 						'newItem'      => __( 'New menu item', 'uplink-admin-menu-manager' ),
 						'parentMenu'   => __( 'Parent menu', 'uplink-admin-menu-manager' ),
-						'requiredCapability' => __( 'Required capability', 'uplink-admin-menu-manager' ),
+						'visibleToRoles' => __( 'Visible to roles', 'uplink-admin-menu-manager' ),
+						'allRoles'     => __( 'All roles', 'uplink-admin-menu-manager' ),
+						/* translators: %d: number of selected roles. */
+						'multipleRoles' => __( '%d roles', 'uplink-admin-menu-manager' ),
+						'roleSelectionHelp' => __( 'Choose one or more roles. Select All roles to show the item to everyone.', 'uplink-admin-menu-manager' ),
 						'topLevel'     => __( 'Top level', 'uplink-admin-menu-manager' ),
 						/* translators: %s: menu group label. */
 						'collapseGroup' => __( 'Collapse %s group', 'uplink-admin-menu-manager' ),
@@ -102,7 +106,7 @@ final class Admin_Page {
 						'menuColorsContrastBlocked' => __( 'Cannot save: fix contrast in Menu colors.', 'uplink-admin-menu-manager' ),
 						'groupColorsContrastBlocked' => __( 'Cannot save: fix contrast in Group colors.', 'uplink-admin-menu-manager' ),
 						'allColorsContrastBlocked' => __( 'Cannot save: fix contrast in Menu colors and Group colors.', 'uplink-admin-menu-manager' ),
-						'unsavedAppearance' => __( 'You have unsaved Appearance changes. Leave this section and discard the preview?', 'uplink-admin-menu-manager' ),
+						'unsavedChanges' => __( 'You have unsaved changes. Leave without saving?', 'uplink-admin-menu-manager' ),
 						/* translators: %d: number of groups with failing text contrast. */
 						'contrastCount' => __( 'Cannot save: fix text contrast in %d group(s).', 'uplink-admin-menu-manager' ),
 						/* translators: %d: number of menu items or groups with failing contrast. */
@@ -217,7 +221,7 @@ final class Admin_Page {
 		$menu           = self::$menu_snapshot['menu'] ?? array();
 		$submenu        = self::$menu_snapshot['submenu'] ?? array();
 		$parent_menus   = self::parent_menu_choices( $profile );
-		$capabilities   = self::capability_choices();
+		$roles          = self::role_choices();
 		self::add_custom_items_to_editor_menu( $profile, $menu, $submenu );
 		?>
 		<div class="uamm-layout">
@@ -241,6 +245,10 @@ final class Admin_Page {
 						<ul id="uamm-menu-list" class="uamm-menu-list">
 							<?php self::render_menu_hierarchy( $menu, $submenu, $profile ); ?>
 						</ul>
+						<section class="uamm-custom-manager" aria-labelledby="uamm-custom-items-title">
+							<div class="uamm-custom-manager__header"><div><h3 id="uamm-custom-items-title"><?php esc_html_e( 'Custom menu items', 'uplink-admin-menu-manager' ); ?></h3><p><?php esc_html_e( 'Add and configure links or headings that appear in the menu above.', 'uplink-admin-menu-manager' ); ?></p></div><div class="uamm-custom-actions"><button id="uamm-add-custom" class="uamm-add-custom" type="button"><?php esc_html_e( 'Add custom menu item', 'uplink-admin-menu-manager' ); ?></button><span id="uamm-custom-unsaved-state" class="uamm-save-state is-dirty" aria-live="polite" hidden><?php esc_html_e( 'Unsaved changes', 'uplink-admin-menu-manager' ); ?></span></div></div>
+							<div id="uamm-custom-list" class="uamm-repeaters"><?php foreach ( $profile['custom_items'] as $custom ) { self::render_custom_row( $custom, $parent_menus, $roles ); } ?></div>
+						</section>
 						<div id="uamm-contrast-summary" class="uamm-form-message" role="alert" tabindex="-1" hidden></div>
 						<div class="uamm-card__footer"><button class="button button-primary" type="submit"><?php esc_html_e( 'Save menu profile', 'uplink-admin-menu-manager' ); ?></button><span id="uamm-save-contrast-state" class="uamm-save-state" aria-live="polite"></span><span class="uamm-save-note"><?php esc_html_e( 'Menu visibility changes navigation only. WordPress capabilities still control access to each screen.', 'uplink-admin-menu-manager' ); ?></span></div>
 						</fieldset>
@@ -250,7 +258,6 @@ final class Admin_Page {
 			<aside class="uamm-sidebar" aria-label="<?php esc_attr_e( 'Menu tools', 'uplink-admin-menu-manager' ); ?>">
 				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Collapsible groups', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Groups now live in the menu order. Drag menu items into a group, drag them back out, or use each item\'s Group selector.', 'uplink-admin-menu-manager' ); ?></p><button id="uamm-add-group" class="button button-primary" type="button"><?php esc_html_e( 'Add group to menu', 'uplink-admin-menu-manager' ); ?></button></section>
 				<section class="uamm-card uamm-card--compact" aria-labelledby="uamm-icon-key-title"><h2 id="uamm-icon-key-title"><?php esc_html_e( 'Control icons', 'uplink-admin-menu-manager' ); ?></h2><dl class="uamm-icon-key"><div><dt><span class="uamm-control-icon uamm-icon-drag" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Drag handle', 'uplink-admin-menu-manager' ); ?></span></dt><dd><?php esc_html_e( 'Drag to reposition an item or group.', 'uplink-admin-menu-manager' ); ?></dd></div><div><dt><span class="uamm-control-icon uamm-icon-move-up" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Move up', 'uplink-admin-menu-manager' ); ?></span></dt><dd><?php esc_html_e( 'Move up one position in the current list.', 'uplink-admin-menu-manager' ); ?></dd></div><div><dt><span class="uamm-control-icon uamm-icon-move-down" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Move down', 'uplink-admin-menu-manager' ); ?></span></dt><dd><?php esc_html_e( 'Move down one position in the current list.', 'uplink-admin-menu-manager' ); ?></dd></div><div><dt><span class="uamm-control-icon uamm-icon-chevron" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Open or close', 'uplink-admin-menu-manager' ); ?></span></dt><dd><?php esc_html_e( 'Open or close a group or its options.', 'uplink-admin-menu-manager' ); ?></dd></div><div><dt><span class="uamm-control-icon uamm-icon-settings" aria-hidden="true"></span><span class="screen-reader-text"><?php esc_html_e( 'Settings', 'uplink-admin-menu-manager' ); ?></span></dt><dd><?php esc_html_e( 'Edit group settings.', 'uplink-admin-menu-manager' ); ?></dd></div></dl></section>
-				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Custom menu items', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Add internal resources, external links, non-clickable headings, or pages displayed in a contained admin frame.', 'uplink-admin-menu-manager' ); ?></p><div id="uamm-custom-list" class="uamm-repeaters"><?php foreach ( $profile['custom_items'] as $custom ) { self::render_custom_row( $custom, $parent_menus, $capabilities ); } ?></div><div class="uamm-custom-actions"><button id="uamm-add-custom" class="uamm-add-custom" type="button"><?php esc_html_e( 'Add custom menu item', 'uplink-admin-menu-manager' ); ?></button><span id="uamm-custom-unsaved-state" class="uamm-save-state is-dirty" aria-live="polite" hidden><?php esc_html_e( 'Unsaved changes', 'uplink-admin-menu-manager' ); ?></span></div></section>
 				<?php if ( 'default' !== $profile_key ) : ?><section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Inheritance', 'uplink-admin-menu-manager' ); ?></h2><p><?php echo esc_html( $profile_locked ? __( 'This protected user profile cannot be deleted by another administrator.', 'uplink-admin-menu-manager' ) : __( 'Delete this override to inherit the default profile again.', 'uplink-admin-menu-manager' ) ); ?></p><form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-uamm-reset><input type="hidden" name="action" value="uamm_delete_profile"><input type="hidden" name="profile_key" value="<?php echo esc_attr( $profile_key ); ?>"><?php wp_nonce_field( 'uamm_delete_profile' ); ?><button class="button button-link-delete" type="submit" <?php disabled( $profile_locked ); ?>><?php esc_html_e( 'Delete profile override', 'uplink-admin-menu-manager' ); ?></button></form></section><?php endif; ?>
 			</aside>
 		</div>
@@ -270,26 +277,24 @@ final class Admin_Page {
 				continue;
 			}
 
-			$id         = sanitize_key( (string) ( $custom['id'] ?? '' ) );
-			$title      = (string) ( $custom['title'] ?? '' );
-			$capability = (string) ( $custom['capability'] ?? 'read' );
-			$capability = '' !== $capability ? $capability : 'read';
-			$slug       = 'uamm-custom-' . $id;
-			$parent     = (string) ( $custom['parent'] ?? '' );
-			$icon       = (string) ( $custom['icon'] ?? 'dashicons-admin-generic' );
-			$mode       = (string) ( $custom['open_mode'] ?? 'same' );
+			$id     = sanitize_key( (string) ( $custom['id'] ?? '' ) );
+			$title  = (string) ( $custom['title'] ?? '' );
+			$slug   = 'uamm-custom-' . $id;
+			$parent = (string) ( $custom['parent'] ?? '' );
+			$icon   = (string) ( $custom['icon'] ?? 'dashicons-admin-generic' );
+			$mode   = (string) ( $custom['open_mode'] ?? 'same' );
 
-			if ( '' === $id || '' === $title || ! current_user_can( $capability ) ) {
+			if ( '' === $id || '' === $title ) {
 				continue;
 			}
 
 			if ( 'iframe' !== $mode && '' !== $parent ) {
 				$submenu[ $parent ]   = is_array( $submenu[ $parent ] ?? null ) ? $submenu[ $parent ] : array();
-				$submenu[ $parent ][] = array( $title, $capability, $slug );
+				$submenu[ $parent ][] = array( $title, 'read', $slug );
 				continue;
 			}
 
-			$menu[] = array( $title, $capability, $slug, '', 'menu-top uamm-custom-item', $slug, $icon );
+			$menu[] = array( $title, 'read', $slug, '', 'menu-top uamm-custom-item', $slug, $icon );
 		}
 	}
 
@@ -686,110 +691,42 @@ final class Admin_Page {
 	}
 
 	/**
-	 * Return WordPress core primitive capabilities suitable for menu visibility.
-	 *
-	 * Deprecated level-based capabilities and object-specific meta capabilities are
-	 * intentionally excluded. Existing custom capabilities remain preserved by the
-	 * saved-value fallback in the selector.
+	 * Return every role registered on the site, including roles added by plugins.
 	 */
-	private static function capability_choices(): array {
-		$values = array(
-			'activate_plugins',
-			'create_users',
-			'delete_others_pages',
-			'delete_others_posts',
-			'delete_pages',
-			'delete_plugins',
-			'delete_posts',
-			'delete_private_pages',
-			'delete_private_posts',
-			'delete_published_pages',
-			'delete_published_posts',
-			'delete_themes',
-			'delete_users',
-			'edit_dashboard',
-			'edit_files',
-			'edit_others_pages',
-			'edit_others_posts',
-			'edit_pages',
-			'edit_plugins',
-			'edit_posts',
-			'edit_private_pages',
-			'edit_private_posts',
-			'edit_published_pages',
-			'edit_published_posts',
-			'edit_theme_options',
-			'edit_themes',
-			'edit_users',
-			'erase_others_personal_data',
-			'export',
-			'export_others_personal_data',
-			'import',
-			'install_plugins',
-			'install_themes',
-			'list_users',
-			'manage_categories',
-			'manage_links',
-			'manage_options',
-			'manage_privacy_options',
-			'moderate_comments',
-			'promote_users',
-			'publish_pages',
-			'publish_posts',
-			'read',
-			'read_private_pages',
-			'read_private_posts',
-			'remove_users',
-			'resume_plugins',
-			'resume_themes',
-			'switch_themes',
-			'unfiltered_html',
-			'unfiltered_upload',
-			'update_core',
-			'update_plugins',
-			'update_themes',
-			'upload_files',
-		);
-
-		if ( is_multisite() ) {
-			$values = array_merge(
-				$values,
-				array(
-					'create_sites',
-					'delete_sites',
-					'manage_network',
-					'manage_network_options',
-					'manage_network_plugins',
-					'manage_network_themes',
-					'manage_network_users',
-					'manage_sites',
-					'setup_network',
-					'upgrade_network',
-				)
+	private static function role_choices(): array {
+		$choices = array();
+		foreach ( wp_roles()->get_names() as $role => $label ) {
+			$choices[] = array(
+				'value' => sanitize_key( (string) $role ),
+				'label' => translate_user_role( (string) $label ),
 			);
 		}
-
-		natcasesort( $values );
-		$values = array_values( array_diff( $values, array( 'read' ) ) );
-		array_unshift( $values, 'read' );
-
-		return array_map(
-			static fn( string $capability ): array => array(
-				'value' => $capability,
-				'label' => ucfirst( str_replace( '_', ' ', $capability ) ) . ' (' . $capability . ')',
-			),
-			$values
+		usort(
+			$choices,
+			static function ( array $first, array $second ): int {
+				if ( 'administrator' === $first['value'] ) {
+					return -1;
+				}
+				if ( 'administrator' === $second['value'] ) {
+					return 1;
+				}
+				return strcasecmp( (string) $first['label'], (string) $second['label'] );
+			}
 		);
+		return $choices;
 	}
 
-	private static function render_custom_row( array $custom, array $parent_menus, array $capabilities ): void {
+	private static function render_custom_row( array $custom, array $parent_menus, array $roles ): void {
 		$custom_icon      = (string) ( $custom['icon'] ?? 'dashicons-admin-links' );
 		$custom_preview   = str_starts_with( $custom_icon, 'dashicons-' ) ? $custom_icon : 'dashicons-admin-generic';
 		$parent           = (string) ( $custom['parent'] ?? '' );
 		$parent_values    = array_column( $parent_menus, 'value' );
-		$capability       = (string) ( $custom['capability'] ?? 'read' );
-		$capability_values = array_column( $capabilities, 'value' );
-		?><div class="uamm-repeater" data-custom-id="<?php echo esc_attr( (string) ( $custom['id'] ?? '' ) ); ?>"><label><?php esc_html_e( 'Label', 'uplink-admin-menu-manager' ); ?><input data-custom-field="title" type="text" value="<?php echo esc_attr( (string) ( $custom['title'] ?? '' ) ); ?>"></label><label><?php esc_html_e( 'URL', 'uplink-admin-menu-manager' ); ?><input data-custom-field="url" type="url" value="<?php echo esc_attr( (string) ( $custom['url'] ?? '' ) ); ?>"></label><label><?php esc_html_e( 'Parent menu', 'uplink-admin-menu-manager' ); ?><select data-custom-field="parent"><option value=""><?php esc_html_e( 'Top level', 'uplink-admin-menu-manager' ); ?></option><?php foreach ( $parent_menus as $menu ) : ?><option value="<?php echo esc_attr( (string) $menu['value'] ); ?>" <?php selected( $parent, (string) $menu['value'] ); ?>><?php echo esc_html( (string) $menu['label'] ); ?></option><?php endforeach; ?><?php if ( '' !== $parent && ! in_array( $parent, $parent_values, true ) ) : ?><option value="<?php echo esc_attr( $parent ); ?>" selected><?php echo esc_html( sprintf( /* translators: %s: saved parent menu identifier. */ __( 'Unavailable menu: %s', 'uplink-admin-menu-manager' ), $parent ) ); ?></option><?php endif; ?></select></label><label><?php esc_html_e( 'Open in', 'uplink-admin-menu-manager' ); ?><select data-custom-field="open_mode"><option value="same" <?php selected( $custom['open_mode'] ?? '', 'same' ); ?>><?php esc_html_e( 'Same window', 'uplink-admin-menu-manager' ); ?></option><option value="new" <?php selected( $custom['open_mode'] ?? '', 'new' ); ?>><?php esc_html_e( 'New tab', 'uplink-admin-menu-manager' ); ?></option><option value="iframe" <?php selected( $custom['open_mode'] ?? '', 'iframe' ); ?>><?php esc_html_e( 'Admin frame', 'uplink-admin-menu-manager' ); ?></option><option value="none" <?php selected( $custom['open_mode'] ?? '', 'none' ); ?>><?php esc_html_e( 'Non-clickable', 'uplink-admin-menu-manager' ); ?></option></select></label><label><?php esc_html_e( 'Required capability', 'uplink-admin-menu-manager' ); ?><select data-custom-field="capability"><?php foreach ( $capabilities as $choice ) : ?><option value="<?php echo esc_attr( (string) $choice['value'] ); ?>" <?php selected( $capability, (string) $choice['value'] ); ?>><?php echo esc_html( (string) $choice['label'] ); ?></option><?php endforeach; ?><?php if ( '' !== $capability && ! in_array( $capability, $capability_values, true ) ) : ?><option value="<?php echo esc_attr( $capability ); ?>" selected><?php echo esc_html( sprintf( /* translators: %s: saved capability identifier. */ __( 'Unavailable capability: %s', 'uplink-admin-menu-manager' ), $capability ) ); ?></option><?php endif; ?></select></label><div class="uamm-icon-field"><label><span><?php esc_html_e( 'Dashicon', 'uplink-admin-menu-manager' ); ?></span><span class="uamm-icon-control"><span class="uamm-icon-field__preview dashicons <?php echo esc_attr( $custom_preview ); ?>" aria-hidden="true"></span><input data-custom-field="icon" type="text" value="<?php echo esc_attr( $custom_icon ); ?>"><button class="button uamm-open-dashicon-picker" type="button" aria-label="<?php esc_attr_e( 'Choose Dashicon', 'uplink-admin-menu-manager' ); ?>"><span class="dashicons dashicons-search" aria-hidden="true"></span></button></span></label></div><button class="button-link-delete uamm-remove" type="button"><?php esc_html_e( 'Remove', 'uplink-admin-menu-manager' ); ?></button></div><?php
+		$raw_roles        = (array) ( $custom['roles'] ?? array( 'administrator' ) );
+		$selected_roles   = in_array( '*', $raw_roles, true ) ? array( '*' ) : array_values( array_filter( array_map( 'sanitize_key', $raw_roles ) ) );
+		if ( ! $selected_roles ) {
+			$selected_roles = array( 'administrator' );
+		}
+		?><div class="uamm-repeater" data-custom-id="<?php echo esc_attr( (string) ( $custom['id'] ?? '' ) ); ?>"><label><?php esc_html_e( 'Label', 'uplink-admin-menu-manager' ); ?><input data-custom-field="title" type="text" value="<?php echo esc_attr( (string) ( $custom['title'] ?? '' ) ); ?>"></label><label><?php esc_html_e( 'URL', 'uplink-admin-menu-manager' ); ?><input data-custom-field="url" type="url" value="<?php echo esc_attr( (string) ( $custom['url'] ?? '' ) ); ?>"></label><label><?php esc_html_e( 'Parent menu', 'uplink-admin-menu-manager' ); ?><select data-custom-field="parent"><option value=""><?php esc_html_e( 'Top level', 'uplink-admin-menu-manager' ); ?></option><?php foreach ( $parent_menus as $menu ) : ?><option value="<?php echo esc_attr( (string) $menu['value'] ); ?>" <?php selected( $parent, (string) $menu['value'] ); ?>><?php echo esc_html( (string) $menu['label'] ); ?></option><?php endforeach; ?><?php if ( '' !== $parent && ! in_array( $parent, $parent_values, true ) ) : ?><option value="<?php echo esc_attr( $parent ); ?>" selected><?php echo esc_html( sprintf( /* translators: %s: saved parent menu identifier. */ __( 'Unavailable menu: %s', 'uplink-admin-menu-manager' ), $parent ) ); ?></option><?php endif; ?></select></label><label><?php esc_html_e( 'Open in', 'uplink-admin-menu-manager' ); ?><select data-custom-field="open_mode"><option value="same" <?php selected( $custom['open_mode'] ?? '', 'same' ); ?>><?php esc_html_e( 'Same window', 'uplink-admin-menu-manager' ); ?></option><option value="new" <?php selected( $custom['open_mode'] ?? '', 'new' ); ?>><?php esc_html_e( 'New tab', 'uplink-admin-menu-manager' ); ?></option><option value="iframe" <?php selected( $custom['open_mode'] ?? '', 'iframe' ); ?>><?php esc_html_e( 'Admin frame', 'uplink-admin-menu-manager' ); ?></option><option value="none" <?php selected( $custom['open_mode'] ?? '', 'none' ); ?>><?php esc_html_e( 'Non-clickable', 'uplink-admin-menu-manager' ); ?></option></select></label><label><?php esc_html_e( 'Visible to roles', 'uplink-admin-menu-manager' ); ?><select data-custom-field="roles" multiple size="<?php echo esc_attr( (string) min( 6, count( $roles ) + 1 ) ); ?>"><option value="*" <?php selected( in_array( '*', $selected_roles, true ) ); ?>><?php esc_html_e( 'All roles', 'uplink-admin-menu-manager' ); ?></option><?php foreach ( $roles as $role ) : ?><option value="<?php echo esc_attr( (string) $role['value'] ); ?>" <?php selected( in_array( (string) $role['value'], $selected_roles, true ) ); ?>><?php echo esc_html( (string) $role['label'] ); ?></option><?php endforeach; ?></select><small><?php esc_html_e( 'Choose one or more roles. Select All roles to show the item to everyone.', 'uplink-admin-menu-manager' ); ?></small></label><div class="uamm-icon-field"><label><span><?php esc_html_e( 'Dashicon', 'uplink-admin-menu-manager' ); ?></span><span class="uamm-icon-control"><span class="uamm-icon-field__preview dashicons <?php echo esc_attr( $custom_preview ); ?>" aria-hidden="true"></span><input data-custom-field="icon" type="text" value="<?php echo esc_attr( $custom_icon ); ?>"><button class="button uamm-open-dashicon-picker" type="button" aria-label="<?php esc_attr_e( 'Choose Dashicon', 'uplink-admin-menu-manager' ); ?>"><span class="dashicons dashicons-search" aria-hidden="true"></span></button></span></label></div><button class="button-link-delete uamm-remove" type="button"><?php esc_html_e( 'Remove', 'uplink-admin-menu-manager' ); ?></button></div><?php
 	}
 
 	private static function render_access(): void {
@@ -800,7 +737,7 @@ final class Admin_Page {
 			static fn( $user ): bool => $user instanceof \WP_User && Settings::user_can_access_manager( $user )
 		);
 		?>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<form id="uamm-access-form" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<input type="hidden" name="action" value="uamm_save_site_settings">
 			<input type="hidden" name="return_tab" value="access">
 			<?php wp_nonce_field( 'uamm_save_site_settings' ); ?>
@@ -956,8 +893,8 @@ final class Admin_Page {
 				<section class="uamm-card"><div class="uamm-card__header"><h2><?php esc_html_e( 'Configuration retention', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Deactivating or deleting the plugin preserves its configuration. WordPress returns to its normal admin menu while the plugin is inactive.', 'uplink-admin-menu-manager' ); ?></p></div></section>
 			</main>
 			<aside class="uamm-sidebar">
-				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Import all settings', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Replaces every current Menu Manager setting. A look-and-feel-only export cannot be imported here.', 'uplink-admin-menu-manager' ); ?></p><form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="uamm_import"><input type="hidden" name="import_scope" value="all"><?php wp_nonce_field( 'uamm_import' ); ?><label for="uamm-import-all-file"><?php esc_html_e( 'Complete JSON export file', 'uplink-admin-menu-manager' ); ?></label><input id="uamm-import-all-file" type="file" name="import_file" accept="application/json,.json" required><button class="button" type="submit"><?php esc_html_e( 'Import and replace all settings', 'uplink-admin-menu-manager' ); ?></button></form></section>
-				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Import look and feel', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Updates presentation only. Existing menu order, groups, permissions, and protected users remain in place.', 'uplink-admin-menu-manager' ); ?></p><form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"><input type="hidden" name="action" value="uamm_import"><input type="hidden" name="import_scope" value="look_and_feel"><?php wp_nonce_field( 'uamm_import' ); ?><label for="uamm-import-look-file"><?php esc_html_e( 'Look and feel JSON export file', 'uplink-admin-menu-manager' ); ?></label><input id="uamm-import-look-file" type="file" name="import_file" accept="application/json,.json" required><button class="button" type="submit"><?php esc_html_e( 'Import look and feel', 'uplink-admin-menu-manager' ); ?></button></form></section>
+				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Import all settings', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Replaces every current Menu Manager setting. A look-and-feel-only export cannot be imported here.', 'uplink-admin-menu-manager' ); ?></p><form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-uamm-import-form><input type="hidden" name="action" value="uamm_import"><input type="hidden" name="import_scope" value="all"><?php wp_nonce_field( 'uamm_import' ); ?><label for="uamm-import-all-file"><?php esc_html_e( 'Complete JSON export file', 'uplink-admin-menu-manager' ); ?></label><input id="uamm-import-all-file" type="file" name="import_file" accept="application/json,.json" required><button class="button" type="submit"><?php esc_html_e( 'Import and replace all settings', 'uplink-admin-menu-manager' ); ?></button></form></section>
+				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Import look and feel', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Updates presentation only. Existing menu order, groups, permissions, and protected users remain in place.', 'uplink-admin-menu-manager' ); ?></p><form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-uamm-import-form><input type="hidden" name="action" value="uamm_import"><input type="hidden" name="import_scope" value="look_and_feel"><?php wp_nonce_field( 'uamm_import' ); ?><label for="uamm-import-look-file"><?php esc_html_e( 'Look and feel JSON export file', 'uplink-admin-menu-manager' ); ?></label><input id="uamm-import-look-file" type="file" name="import_file" accept="application/json,.json" required><button class="button" type="submit"><?php esc_html_e( 'Import look and feel', 'uplink-admin-menu-manager' ); ?></button></form></section>
 				<section class="uamm-card uamm-card--compact"><h2><?php esc_html_e( 'Clear configuration', 'uplink-admin-menu-manager' ); ?></h2><p><?php esc_html_e( 'Permanently remove every saved profile, group, appearance setting, and access rule from this site.', 'uplink-admin-menu-manager' ); ?></p><form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-uamm-clear><input type="hidden" name="action" value="uamm_clear_settings"><?php wp_nonce_field( 'uamm_clear_settings' ); ?><button class="button button-link-delete" type="submit"><?php esc_html_e( 'Clear stored configuration', 'uplink-admin-menu-manager' ); ?></button></form></section>
 			</aside>
 		</div>

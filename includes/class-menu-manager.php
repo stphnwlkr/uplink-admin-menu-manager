@@ -152,32 +152,47 @@ final class Menu_Manager {
 
 	private static function add_custom_items( array $profile, array &$menu, &$submenu ): void {
 		foreach ( (array) $profile['custom_items'] as $custom ) {
-			$id         = sanitize_key( (string) ( $custom['id'] ?? '' ) );
-			$title      = (string) ( $custom['title'] ?? '' );
-			$capability = (string) ( $custom['capability'] ?? 'read' );
-			$capability = '' !== $capability ? $capability : 'read';
-			$slug       = 'uamm-custom-' . $id;
-			$parent     = (string) ( $custom['parent'] ?? '' );
-			$mode       = (string) ( $custom['open_mode'] ?? 'same' );
-			$url        = (string) ( $custom['url'] ?? '' );
+			$id     = sanitize_key( (string) ( $custom['id'] ?? '' ) );
+			$title  = (string) ( $custom['title'] ?? '' );
+			$slug   = 'uamm-custom-' . $id;
+			$parent = (string) ( $custom['parent'] ?? '' );
+			$mode   = (string) ( $custom['open_mode'] ?? 'same' );
+			$url    = (string) ( $custom['url'] ?? '' );
 
-			if ( '' === $id || '' === $title || ! current_user_can( $capability ) ) {
+			if ( '' === $id || '' === $title || ! self::current_user_matches_custom_roles( $custom ) ) {
 				continue;
 			}
 
 			if ( 'iframe' === $mode ) {
-				add_menu_page( $title, $title, $capability, $slug, static function () use ( $title, $url ): void {
+				add_menu_page( $title, $title, 'read', $slug, static function () use ( $title, $url ): void {
 					self::render_iframe_page( $title, $url );
 				}, (string) ( $custom['icon'] ?? 'dashicons-admin-generic' ) );
 			} elseif ( '' !== $parent ) {
 				$submenu[ $parent ]   = is_array( $submenu[ $parent ] ?? null ) ? $submenu[ $parent ] : array();
-				$submenu[ $parent ][] = array( esc_html( $title ), $capability, $slug );
+				$submenu[ $parent ][] = array( esc_html( $title ), 'read', $slug );
 				self::$custom_links[ $slug ] = array( 'url' => $url, 'mode' => $mode );
 			} else {
-				$menu[] = array( esc_html( $title ), $capability, $slug, '', 'menu-top uamm-custom-item', 'uamm-custom-' . $id, (string) ( $custom['icon'] ?? 'dashicons-admin-generic' ) );
+				$menu[] = array( esc_html( $title ), 'read', $slug, '', 'menu-top uamm-custom-item', 'uamm-custom-' . $id, (string) ( $custom['icon'] ?? 'dashicons-admin-generic' ) );
 				self::$custom_links[ $slug ] = array( 'url' => $url, 'mode' => $mode );
 			}
 		}
+	}
+
+	/**
+	 * Determine whether the current user's roles may see a custom item.
+	 */
+	private static function current_user_matches_custom_roles( array $custom ): bool {
+		$roles = (array) ( $custom['roles'] ?? array( 'administrator' ) );
+		if ( in_array( '*', $roles, true ) ) {
+			return true;
+		}
+
+		$allowed = array_values( array_filter( array_map( 'sanitize_key', $roles ) ) );
+		if ( ! $allowed ) {
+			$allowed = array( 'administrator' );
+		}
+
+		return (bool) array_intersect( wp_get_current_user()->roles, $allowed );
 	}
 
 	private static function move_submenu_items( array $profile, &$submenu ): void {

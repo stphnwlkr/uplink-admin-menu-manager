@@ -18,7 +18,7 @@ Deleting a role or user override restores inheritance from the default profile.
 
 ## Security model
 
-Administrators with `manage_options` can edit site-wide settings and unprotected profiles. Administrators may also allow selected roles to edit only their own personal menu profile. All writes use WordPress nonces and server-side validation. Menu visibility never grants access to an admin page. Custom items require an explicit WordPress capability, and external new-tab links receive `noopener noreferrer`.
+Administrators with `manage_options` can edit site-wide settings and unprotected profiles. Administrators may also allow selected roles to edit only their own personal menu profile. All writes use WordPress nonces and server-side validation. Menu visibility never grants access to an admin page. Custom items can be limited to one or more registered WordPress roles, including custom roles, and new items default to Administrator. External new-tab links receive `noopener noreferrer`.
 
 ## Accessibility
 
