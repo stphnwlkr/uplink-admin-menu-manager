@@ -996,13 +996,22 @@
 		updateCustomItemsDirtyState();
 	}
 
-	var initialCustomItemIds = Array.from( document.querySelectorAll( '#uamm-custom-list [data-custom-id]' ) ).map( function ( row ) { return row.getAttribute( 'data-custom-id' ); } );
+	function customItemsState() {
+		return Array.from( document.querySelectorAll( '#uamm-custom-list [data-custom-id]' ) ).map( function ( row ) {
+			var fields = {};
+			row.querySelectorAll( '[data-custom-field]' ).forEach( function ( field ) {
+				fields[ field.getAttribute( 'data-custom-field' ) ] = 'checkbox' === field.type ? field.checked : field.value;
+			} );
+			return { id: row.getAttribute( 'data-custom-id' ), fields: fields };
+		} );
+	}
+
+	var initialCustomItemsState = JSON.stringify( customItemsState() );
 
 	function updateCustomItemsDirtyState() {
 		var output = document.getElementById( 'uamm-custom-unsaved-state' );
 		if ( ! output ) { return; }
-		var currentIds = Array.from( document.querySelectorAll( '#uamm-custom-list [data-custom-id]' ) ).map( function ( row ) { return row.getAttribute( 'data-custom-id' ); } );
-		output.hidden = JSON.stringify( currentIds ) === JSON.stringify( initialCustomItemIds );
+		output.hidden = JSON.stringify( customItemsState() ) === initialCustomItemsState;
 	}
 
 	function refreshGroupSelects() {
@@ -1270,6 +1279,10 @@
 	document.addEventListener( 'input', function ( event ) {
 		if ( dashiconPicker && event.target.matches( '#uamm-dashicon-search' ) ) { renderDashiconChoices( event.target.value ); }
 		if ( event.target.matches( '.uamm-icon-field input[type="text"]' ) ) { updateIconPreview( event.target, event.target.value.trim() ); }
+		if ( event.target.matches( '#uamm-custom-list [data-custom-field]' ) ) { updateCustomItemsDirtyState(); }
+	} );
+	document.addEventListener( 'change', function ( event ) {
+		if ( event.target.matches( '#uamm-custom-list [data-custom-field]' ) ) { updateCustomItemsDirtyState(); }
 	} );
 	document.addEventListener( 'keydown', function ( event ) {
 		if ( ! dashiconPicker || dashiconPicker.hidden ) { return; }
