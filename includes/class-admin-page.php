@@ -686,19 +686,89 @@ final class Admin_Page {
 	}
 
 	/**
-	 * Return capabilities registered on at least one WordPress role.
+	 * Return WordPress core primitive capabilities suitable for menu visibility.
+	 *
+	 * Deprecated level-based capabilities and object-specific meta capabilities are
+	 * intentionally excluded. Existing custom capabilities remain preserved by the
+	 * saved-value fallback in the selector.
 	 */
 	private static function capability_choices(): array {
-		$capabilities = array( 'read' => true );
-		foreach ( wp_roles()->roles as $role ) {
-			foreach ( (array) ( $role['capabilities'] ?? array() ) as $capability => $granted ) {
-				if ( $granted ) {
-					$capabilities[ sanitize_key( (string) $capability ) ] = true;
-				}
-			}
+		$values = array(
+			'activate_plugins',
+			'create_users',
+			'delete_others_pages',
+			'delete_others_posts',
+			'delete_pages',
+			'delete_plugins',
+			'delete_posts',
+			'delete_private_pages',
+			'delete_private_posts',
+			'delete_published_pages',
+			'delete_published_posts',
+			'delete_themes',
+			'delete_users',
+			'edit_dashboard',
+			'edit_files',
+			'edit_others_pages',
+			'edit_others_posts',
+			'edit_pages',
+			'edit_plugins',
+			'edit_posts',
+			'edit_private_pages',
+			'edit_private_posts',
+			'edit_published_pages',
+			'edit_published_posts',
+			'edit_theme_options',
+			'edit_themes',
+			'edit_users',
+			'erase_others_personal_data',
+			'export',
+			'export_others_personal_data',
+			'import',
+			'install_plugins',
+			'install_themes',
+			'list_users',
+			'manage_categories',
+			'manage_links',
+			'manage_options',
+			'manage_privacy_options',
+			'moderate_comments',
+			'promote_users',
+			'publish_pages',
+			'publish_posts',
+			'read',
+			'read_private_pages',
+			'read_private_posts',
+			'remove_users',
+			'resume_plugins',
+			'resume_themes',
+			'switch_themes',
+			'unfiltered_html',
+			'unfiltered_upload',
+			'update_core',
+			'update_plugins',
+			'update_themes',
+			'upload_files',
+		);
+
+		if ( is_multisite() ) {
+			$values = array_merge(
+				$values,
+				array(
+					'create_sites',
+					'delete_sites',
+					'manage_network',
+					'manage_network_options',
+					'manage_network_plugins',
+					'manage_network_themes',
+					'manage_network_users',
+					'manage_sites',
+					'setup_network',
+					'upgrade_network',
+				)
+			);
 		}
 
-		$values = array_keys( $capabilities );
 		natcasesort( $values );
 		$values = array_values( array_diff( $values, array( 'read' ) ) );
 		array_unshift( $values, 'read' );
