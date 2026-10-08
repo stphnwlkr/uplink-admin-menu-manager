@@ -4,6 +4,7 @@
 	var strings = ( window.uammAdmin || {} ).i18n || {};
 	var groupStyle = ( window.uammAdmin || {} ).groupStyle || {};
 	var parentMenus = ( window.uammAdmin || {} ).parentMenus || [];
+	var capabilityChoices = ( window.uammAdmin || {} ).capabilities || [];
 	var adminMenuFallbacks = {};
 	var groupViewState = { alwaysCollapsed: false, groups: {} };
 	var appearanceFormDirty = false;
@@ -189,6 +190,22 @@
 			var option = document.createElement( 'option' );
 			option.value = menu.value;
 			option.textContent = menu.label;
+			select.appendChild( option );
+		} );
+		wrapper.appendChild( select );
+		return wrapper;
+	}
+
+	function customCapabilitySelect() {
+		var wrapper = document.createElement( 'label' );
+		var select = document.createElement( 'select' );
+		wrapper.appendChild( document.createTextNode( strings.requiredCapability || 'Required capability' ) );
+		select.setAttribute( 'data-custom-field', 'capability' );
+		capabilityChoices.forEach( function ( capability ) {
+			var option = document.createElement( 'option' );
+			option.value = capability.value;
+			option.textContent = capability.label;
+			option.selected = 'read' === capability.value;
 			select.appendChild( option );
 		} );
 		wrapper.appendChild( select );
@@ -963,7 +980,7 @@
 		row.appendChild( input( 'Label', 'custom-title', 'text', strings.newItem || 'New menu item' ) );
 		row.appendChild( input( 'URL', 'custom-url', 'url', '' ) );
 		row.appendChild( customParentSelect() );
-		row.appendChild( input( 'Capability', 'custom-capability', 'text', 'read' ) );
+		row.appendChild( customCapabilitySelect() );
 		row.appendChild( dashiconInput( 'Dashicon', 'custom-icon', 'dashicons-admin-links' ) );
 		var mode = document.createElement( 'label' );
 		var select = document.createElement( 'select' );
@@ -976,6 +993,16 @@
 		row.appendChild( mode );
 		row.appendChild( removeButton() );
 		list.appendChild( row );
+		updateCustomItemsDirtyState();
+	}
+
+	var initialCustomItemIds = Array.from( document.querySelectorAll( '#uamm-custom-list [data-custom-id]' ) ).map( function ( row ) { return row.getAttribute( 'data-custom-id' ); } );
+
+	function updateCustomItemsDirtyState() {
+		var output = document.getElementById( 'uamm-custom-unsaved-state' );
+		if ( ! output ) { return; }
+		var currentIds = Array.from( document.querySelectorAll( '#uamm-custom-list [data-custom-id]' ) ).map( function ( row ) { return row.getAttribute( 'data-custom-id' ); } );
+		output.hidden = JSON.stringify( currentIds ) === JSON.stringify( initialCustomItemIds );
 	}
 
 	function refreshGroupSelects() {
@@ -1223,7 +1250,7 @@
 		if ( moveDown ) { var downRow = moveDown.closest( '.uamm-menu-item, .uamm-menu-group' ); if ( downRow.nextElementSibling ) { downRow.parentNode.insertBefore( downRow.nextElementSibling, downRow ); moveDown.focus(); syncGroupAssignments(); } }
 		if ( submenuMoveUp ) { var submenuUpRow = submenuMoveUp.closest( '.uamm-submenu-row' ); if ( submenuUpRow.previousElementSibling ) { submenuUpRow.parentNode.insertBefore( submenuUpRow, submenuUpRow.previousElementSibling ); submenuMoveUp.focus(); updateMenuSaveState(); } }
 		if ( submenuMoveDown ) { var submenuDownRow = submenuMoveDown.closest( '.uamm-submenu-row' ); if ( submenuDownRow.nextElementSibling ) { submenuDownRow.parentNode.insertBefore( submenuDownRow.nextElementSibling, submenuDownRow ); submenuMoveDown.focus(); updateMenuSaveState(); } }
-		if ( remove ) { remove.closest( '.uamm-repeater' ).remove(); refreshGroupSelects(); }
+		if ( remove ) { remove.closest( '.uamm-repeater' ).remove(); refreshGroupSelects(); updateCustomItemsDirtyState(); }
 		if ( removeGroup ) { var removedGroup = removeGroup.closest( '.uamm-menu-group' ); var removedGroupId = removedGroup.getAttribute( 'data-group-id' ); var root = document.getElementById( 'uamm-menu-list' ); removedGroup.querySelectorAll( ':scope > .uamm-group-items > .uamm-menu-item' ).forEach( function ( item ) { root.insertBefore( item, removedGroup ); } ); removedGroup.remove(); if ( removedGroupId ) { delete groupViewState.groups[ removedGroupId ]; saveGroupViewState(); } refreshGroupSelects(); syncGroupAssignments(); updateMenuSaveState(); }
 	} );
 	document.addEventListener( 'keydown', function ( event ) {
