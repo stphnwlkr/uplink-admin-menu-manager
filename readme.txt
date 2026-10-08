@@ -4,7 +4,7 @@ Tags: admin menu, accessibility, menu groups, menu editor, dashboard
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.0.4
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,13 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 
 == Changelog ==
 
+= 1.1.0 =
+* Fixed custom menu items missing from the sortable menu editor so they can be reordered and assigned to groups.
+* Replaced custom-item capability rules with role visibility, including registered custom roles and an Administrator default for existing items.
+* Moved custom-item controls below the main menu and collapsed each item into a compact editor row.
+* Replaced the parent menu identifier field with a menu selector.
+* Warned before leaving any changed settings screen without saving.
+
 = 1.0.4 =
 * Added drag-and-drop and keyboard controls for reordering WordPress and plugin submenu items.
 * Preserved the native submenu order unless an administrator explicitly changes it.
@@ -151,6 +158,10 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 * Add complete and look-and-feel-only JSON transfer.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+
+Custom-item visibility now uses roles instead of capabilities. Existing custom items without a role setting default to Administrator.
 
 = 1.0.4 =
 
