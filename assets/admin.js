@@ -3,6 +3,7 @@
 
 	var strings = ( window.uammAdmin || {} ).i18n || {};
 	var groupStyle = ( window.uammAdmin || {} ).groupStyle || {};
+	var parentMenus = ( window.uammAdmin || {} ).parentMenus || [];
 	var adminMenuFallbacks = {};
 	var groupViewState = { alwaysCollapsed: false, groups: {} };
 	var appearanceFormDirty = false;
@@ -172,6 +173,25 @@
 		fieldLabel.appendChild( labelText );
 		fieldLabel.appendChild( control );
 		wrapper.appendChild( fieldLabel );
+		return wrapper;
+	}
+
+	function customParentSelect() {
+		var wrapper = document.createElement( 'label' );
+		var select = document.createElement( 'select' );
+		var topLevel = document.createElement( 'option' );
+		wrapper.appendChild( document.createTextNode( strings.parentMenu || 'Parent menu' ) );
+		select.setAttribute( 'data-custom-field', 'parent' );
+		topLevel.value = '';
+		topLevel.textContent = strings.topLevel || 'Top level';
+		select.appendChild( topLevel );
+		parentMenus.forEach( function ( menu ) {
+			var option = document.createElement( 'option' );
+			option.value = menu.value;
+			option.textContent = menu.label;
+			select.appendChild( option );
+		} );
+		wrapper.appendChild( select );
 		return wrapper;
 	}
 
@@ -942,7 +962,7 @@
 		row.setAttribute( 'data-custom-id', uid( 'item' ) );
 		row.appendChild( input( 'Label', 'custom-title', 'text', strings.newItem || 'New menu item' ) );
 		row.appendChild( input( 'URL', 'custom-url', 'url', '' ) );
-		row.appendChild( input( 'Parent menu slug', 'custom-parent', 'text', '' ) );
+		row.appendChild( customParentSelect() );
 		row.appendChild( input( 'Capability', 'custom-capability', 'text', 'read' ) );
 		row.appendChild( dashiconInput( 'Dashicon', 'custom-icon', 'dashicons-admin-links' ) );
 		var mode = document.createElement( 'label' );

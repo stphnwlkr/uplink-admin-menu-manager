@@ -2066,6 +2066,43 @@ body.uamm-modal-open {
 	margin: 16px 0;
 }
 
+.uamm-add-custom {
+	align-items: center;
+	background: transparent;
+	border: 0;
+	color: var(--uamm-blue);
+	cursor: pointer;
+	display: inline-flex;
+	font-size: 14px;
+	font-weight: 600;
+	gap: 8px;
+	padding: 5px 2px;
+}
+
+.uamm-add-custom::before {
+	align-items: center;
+	border: 1px solid currentColor;
+	border-radius: 50%;
+	content: "+";
+	display: inline-flex;
+	font-size: 18px;
+	font-weight: 400;
+	height: 22px;
+	justify-content: center;
+	line-height: 1;
+	width: 22px;
+}
+
+.uamm-add-custom:hover {
+	color: #543629;
+}
+
+.uamm-add-custom:focus-visible {
+	border-radius: 5px;
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--uamm-blue);
+	outline: 0;
+}
+
 .uamm-repeater {
 	background: #f6f7f7;
 	border: 1px solid #dcdcde;
