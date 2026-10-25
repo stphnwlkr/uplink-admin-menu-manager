@@ -89,7 +89,13 @@ final class Menu_Manager {
 			}
 
 			self::apply_item_config( $item, $slug, $config );
-			if ( ! empty( $config['url'] ) || in_array( (string) ( $config['open_mode'] ?? 'same' ), array( 'new', 'none' ), true ) ) {
+			// Custom-item URLs come from custom_items. The same item also appears in
+			// items for ordering and presentation, where an empty URL must not replace
+			// the custom link registered by add_custom_items().
+			if (
+				! str_starts_with( $slug, 'uamm-custom-' ) &&
+				( ! empty( $config['url'] ) || in_array( (string) ( $config['open_mode'] ?? 'same' ), array( 'new', 'none' ), true ) )
+			) {
 				self::$custom_links[ $slug ] = array(
 					'url'  => (string) ( $config['url'] ?? '' ),
 					'mode' => (string) ( $config['open_mode'] ?? 'same' ),

@@ -4,7 +4,7 @@ Tags: admin menu, accessibility, menu groups, menu editor, dashboard
 Requires at least: 7.0
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,10 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 
 == Changelog ==
 
+= 1.1.1 =
+* Fixed custom links set to open in a new tab so their saved destination is preserved.
+* Removed duplicate URL and destination controls from custom items in the sortable menu editor.
+
 = 1.1.0 =
 * Fixed custom menu items missing from the sortable menu editor so they can be reordered and assigned to groups.
 * Replaced custom-item capability rules with role visibility, including registered custom roles and an Administrator default for existing items.
@@ -158,6 +162,10 @@ SortableJS 1.15.7 is bundled locally for menu reordering. SortableJS is copyrigh
 * Add complete and look-and-feel-only JSON transfer.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+
+Fixes custom links configured to open in a new tab and removes misleading duplicate destination controls.
 
 = 1.1.0 =
 

@@ -1,5 +1,18 @@
 # Uplink Admin Menu Manager changelog
 
+## 1.1.1
+
+- Fixed custom links set to open in a new tab so their saved destination is preserved.
+- Removed duplicate URL and destination controls from custom items in the sortable menu editor.
+
+## 1.1.0
+
+- Restored custom menu items to the sortable menu editor so they can be reordered and assigned to groups.
+- Replaced custom-item capability rules with role visibility, including registered custom roles and an Administrator default for existing items.
+- Moved custom-item controls below the main menu and collapsed each item into a compact editor row.
+- Replaced the parent menu identifier field with a menu selector.
+- Added unsaved-change warnings across the settings interface.
+
 ## 1.0.4
 
 - Added drag-and-drop and keyboard controls for reordering WordPress and plugin submenu items.
